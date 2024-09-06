@@ -91,12 +91,11 @@ static double	numberbefore(char *str, int i, int *start)
     while (*start >= 0 && (isdigit(str[*start]) || str[*start] == '.'))
 		--(*start);
 	
-	if (*start >= 0 && (str[*start] == '-' || str[*start] == '+'))
+	if (*start >= 0 && (str[*start] == '-' || str[*start] == '+') && !strchr("^!", str[i]) )
 		--(*start);
 	if (*start >= 0 && (isdigit(str[*start]) || str[*start] == '('))
 		(*start)++;
 	(*start)++;
-
     num_str = ft_substr(str, *start, i);
 
     a = strtod(num_str, NULL);
@@ -343,12 +342,12 @@ static int lookupfunction(char **s)
 					++i;
 				
 				number = ft_substr(*s, k, i);
-				if (isdigit(number[strlen(number) - 1]))
+				if (k != i && isdigit(number[strlen(number) - 1]))
 				{
 					result = operatefunction(aux, number, &e);
 					if (!e)
 					{
-						printf("   Function %s%s(%s) = %s%s\n", CYAN, aux, number, result, RESET);
+						if (v_calc) printf("   Function %s%s(%s) = %s%s\n", CYAN, aux, number, result, RESET);
 						update_result(s, j, i, result);
 						i = 0;
 					}
@@ -408,11 +407,9 @@ static void splitter(char *s, char **strn, char **strl)
 			if (j > 0)
 				--j;
 			substr = ft_substr(s, j, i);
-			printf("  token = %s\n", substr);
 			if (onlynumbers(substr))
 			{
 				strcat(*strn, substr);
-				printf("    strn = %s\n", *strn);
 			}
 			else
 			{
@@ -425,22 +422,24 @@ static void splitter(char *s, char **strn, char **strl)
 		else if (s[i])
 			++i;
 	}
+	if ((*strl)[0] == '+' && (*strn)[0] == '\0')
+		*strl[0] = ' ';
+
 }
 
 static int transformexpression(char **str)
 {
-	printf("   There are variables in the expression %s\n", *str);
+	if (v_calc) printf("   (There are variables in the expression %s%s%s)\n", CYAN, *str, RESET);
 	char *strn;
 	char *strl;
 		
 	strn = (char *)calloc(strlen(*str)+1, sizeof(char));
 	if (!strn)
 		exit(EXIT_FAILURE);
-	strl = (char *)calloc(strlen(*str)+1, sizeof(char));
+	strl = (char *)calloc(strlen(*str)+2, sizeof(char));
 	if (!strl)
 		exit(EXIT_FAILURE);
 	splitter(*str, &strn, &strl);
-	printf("strn = %s ## strl = %s\n", strn, strl);
 	int e = calc(&strn);
 	if (!e)
 	{
@@ -462,7 +461,6 @@ static int detectbrackets(char **str)
 	int		i;
 	int		b;
 	int		start;
-	int		end;
 
 	i = 0;
 	while ((*str)[i])
@@ -479,35 +477,34 @@ static int detectbrackets(char **str)
 				b -= ((*str)[i] == ')');
 				if (b == 0)
 				{
-					end = i;
-					substr = ft_substr(*str, start, end);
-					if (thereareoperations(substr))
-						printf("+ Bracket: %s\n", substr);
+
+					substr = ft_substr(*str, start, i);
+					
+					if (v_calc) printf("+ Bracket: %s%s%s\n", CYAN, substr, RESET);
 				
 					if (detectbrackets(&substr) || lookupfunction(&substr))
 					{
 						free(substr);
 						return 1;
 					}
-					
-					if (thereareoperations(substr) && onlynumbers(substr))
-					{
-						calc(&substr);
-					}
+
+					if (v_calc) printf("- Bracket: %s%s%s\n", CYAN, *str, RESET);
 
 					if (!onlynumbers(substr))
 					{
 						transformexpression(&substr);
-						update_result(str, start, end, substr);
-						free(substr);
+						update_result(str, start, i, substr);
 					}
 					else
 					{
-						update_result(str, start-1, end+1, substr);
+						if (thereareoperations(substr))
+							calc(&substr);
+						update_result(str, start-1, i+1, substr);
 						resolvedoblesigne(str);
 						i = 0;
-						free(substr);
 					}
+
+					free(substr);
 				}
 				++i;
 			}
@@ -526,38 +523,53 @@ int	calc(char **str)
 	double	a;
 	double	b;
 	char	*aux;
+	bool	isnegative;
 
 	op = 0;
+	isnegative = (*str)[0] == '(' && (*str)[1] == '-' && onlynumbers(*str) && (strchr(*str, '!') || strchr(*str, '^'));
+	if (isnegative)
+	    (*str)[1] = '+';
+	
 	e = detectbrackets(str);
 	if (!e)
 		resolvedoblesigne(str);
-	printf("salgo de brackets con : %s\n", *str);
-	// if (strchr(*str, '('))
-	// 	return 0;
-	if (!onlynumbers(*str) && strchr(*str, '('))
+
+	if (!onlynumbers(*str))
 	{
-		return transformexpression(str);
+		transformexpression(str);
+		printf("   Reduzco la expresion %s%s%s\n", CYAN, *str, RESET);
+		return 0;
 	}
+
 	while (op < 4 && !e)
 	{
 		i = findoperation(op, *str);
 		if (i == -1)
 			++op;
-		else if ((*str)[i-1] != ')' && (*str)[i+1] != '(')
+		else
 		{
 			a = numberbefore(*str, i, &start);
+			if (isnegative)
+			{
+				a = -a;
+				isnegative = false;
+			}
 			if (op == 0)
 				end = i+1;
 			else
 				b = numberafter(*str, i, &end);
+
 			aux = makeoperation((*str)[i], a, b, &e);
+
 			if (!e)
 			{
-				printf("   Operation %s %.2f %c", CYAN, a, (*str)[i]);
-				if ( (*str)[i] != '!')
-					printf(" %.2f", b);
-				printf(" = %s %s\n", aux, RESET);
-
+				if (v_calc) 
+				{
+					printf("   Operation %s %.2f %c", CYAN, a, (*str)[i]);
+					if ( (*str)[i] != '!')
+						printf(" %.2f", b);
+					printf(" = %s %s\n", aux, RESET);
+				}
 				update_result(str, start, end, aux);
 				op = 0;
 			}

@@ -12,6 +12,8 @@
 
 #include "computor.h"
 
+bool	v_calc = false;
+
 static void	renewprompt(int sig)
 {
 	(void)sig;
@@ -34,13 +36,26 @@ static void	init_computor(t_token **t, char **prompt)
 	rl_set_prompt(*prompt);
 }
 
-int	main()
+int	main(int argc, char **argv)
 {
 	t_token	*token_list;
 	char	*input;
 	char	*prompt;
 	int		finish;
 
+	if (argc == 2)
+	{
+		if (!strcmp(argv[1], "-v"))
+		{
+			v_calc = true;
+			printf("Visual mode enabled\n");
+		}
+		else
+		{
+			printf("Invalid argument\n");
+			return (1);
+		}
+	}
 	init_computor(&token_list, &prompt);
 	finish = 0;
 	while (!finish)

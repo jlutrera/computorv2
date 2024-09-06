@@ -58,6 +58,9 @@ typedef struct s_token
 
 }	t_token;
 
+//Variable global para visualizar las operaciones
+extern bool	v_calc;
+
 // calc.c
 int		calc(char **str);
 // compute.c
