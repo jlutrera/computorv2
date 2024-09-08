@@ -365,8 +365,9 @@ static int lookupfunction(char **s)
 
 static bool onlynumbers(char *s)
 {
-	int i = 0;
+	int i;
 
+	i = 0;
 	while (s[i])
 	{
 		if (isalpha(s[i]))
@@ -427,34 +428,6 @@ static void splitter(char *s, char **strn, char **strl)
 
 }
 
-static int transformexpression(char **str)
-{
-	if (v_calc) printf("   (There are variables in the expression %s%s%s)\n", CYAN, *str, RESET);
-	char *strn;
-	char *strl;
-		
-	strn = (char *)calloc(strlen(*str)+1, sizeof(char));
-	if (!strn)
-		exit(EXIT_FAILURE);
-	strl = (char *)calloc(strlen(*str)+2, sizeof(char));
-	if (!strl)
-		exit(EXIT_FAILURE);
-	splitter(*str, &strn, &strl);
-	int e = calc(&strn);
-	if (!e)
-	{
-		free(*str);
-		*str = (char *)calloc(strlen(strn) + strlen(strl) + 1, sizeof(char));
-		if (!*str)
-			exit(EXIT_FAILURE);
-		strcat(*str, strn);
-		strcat(*str, strl);
-	}
-	free(strn);
-	free(strl);
-	return e;
-}
-
 static int detectbrackets(char **str)
 {
 	char 	*substr;
@@ -488,14 +461,12 @@ static int detectbrackets(char **str)
 						return 1;
 					}
 
-					if (v_calc) printf("- Bracket: %s%s%s\n", CYAN, *str, RESET);
-
-					if (!onlynumbers(substr))
+					if (!onlynumbers(substr) && !strchr(substr, '(')) 
 					{
 						transformexpression(&substr);
 						update_result(str, start, i, substr);
 					}
-					else
+					else if (onlynumbers(substr))
 					{
 						if (thereareoperations(substr))
 							calc(&substr);
@@ -505,12 +476,44 @@ static int detectbrackets(char **str)
 					}
 
 					free(substr);
+					remove_spaces(*str);
+					if (v_calc) printf("- Bracket: %s%s%s\n", CYAN, *str, RESET);
 				}
 				++i;
 			}
 		}
 	}
 	return lookupfunction(str);
+}
+
+int transformexpression(char **str)
+{
+	char 	*strn;
+	char 	*strl;
+	int		e;
+	
+	if (v_calc) printf("   >> There are variables in the expression %s%s%s <<\n", CYAN, *str, RESET);
+	
+	strn = (char *)calloc(strlen(*str)+1, sizeof(char));
+	if (!strn)
+		exit(EXIT_FAILURE);
+	strl = (char *)calloc(strlen(*str)+2, sizeof(char));
+	if (!strl)
+		exit(EXIT_FAILURE);
+	splitter(*str, &strn, &strl);
+	e = calc(&strn);
+	if (!e)
+	{
+		free(*str);
+		*str = (char *)calloc(strlen(strn) + strlen(strl) + 1, sizeof(char));
+		if (!*str)
+			exit(EXIT_FAILURE);
+		strcat(*str, strn);
+		strcat(*str, strl);
+	}
+	free(strn);
+	free(strl);
+	return e;
 }
 
 int	calc(char **str)
@@ -536,8 +539,14 @@ int	calc(char **str)
 
 	if (!onlynumbers(*str))
 	{
-		transformexpression(str);
-		printf("   Reduzco la expresion %s%s%s\n", CYAN, *str, RESET);
+		if (v_calc)
+		{
+			printf("\nProvisional result : %s%s%s\n\n", CYAN, *str, RESET);
+			printf("*********************************************\n");
+			printf("* Now, I'm trying to reduce that expression *\n");
+			printf("*********************************************\n");
+		}
+		calc_with_variables(str);
 		return 0;
 	}
 

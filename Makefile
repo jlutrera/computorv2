@@ -13,7 +13,8 @@ LEAKS 		=	-fsanitize=address -g
 LDFLAGS 	=	-lreadline
 
 # Source files
-SRCS		=	./srcs/calc.c \
+SRCS		=	./srcs/algebra.c \
+				./srcs/calc.c \
 				./srcs/compute.c \
 				./srcs/delete.c \
 				./srcs/equations.c \

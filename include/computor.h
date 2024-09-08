@@ -61,8 +61,11 @@ typedef struct s_token
 //Variable global para visualizar las operaciones
 extern bool	v_calc;
 
+// algebra.c
+void	calc_with_variables(char **str);
 // calc.c
 int		calc(char **str);
+int 	transformexpression(char **str);
 // compute.c
 int 	compute(char **content, t_token **list, bool fortype);
 // delete.c
