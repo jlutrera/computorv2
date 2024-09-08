@@ -13,3 +13,4 @@
 - Operations between types, as much as possible
 - Exit the program itself (by keyword, signal, keyboard shortcut, etc.)
 
+If you want to see the calculation process, you have to write the flag `-v` after the programme name.
