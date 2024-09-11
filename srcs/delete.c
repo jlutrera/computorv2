@@ -68,7 +68,7 @@ bool	delete(char *content, t_token **list)
 	//Es el comando delete pero no hay datos
 	if (!*list)
 	{
-		printf("Nothing to delete");
+		printf("   Nothing to delete\n");
 		return 1;
 	}
 

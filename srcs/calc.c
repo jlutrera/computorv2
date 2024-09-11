@@ -401,8 +401,14 @@ static void splitter(char *s, char **strn, char **strl)
 	{
 		j = i;
 		while (s[i] && s[i] != '+' && s[i] != '-')
+		{
+			if (s[i] == '(')
+			{
+				while (s[i] && s[i] != ')')
+					++i;
+			}
 			++i;
-		
+		}
 		if (j !=i)
 		{
 			if (j > 0)
