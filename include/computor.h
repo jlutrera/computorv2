@@ -20,6 +20,8 @@
 # include <readline/history.h>
 # include <sys/wait.h>
 # include <stdbool.h>
+# include <sys/ioctl.h>
+# include <termios.h>
 
 # ifdef __APPLE__
 #  include <mlx.h>

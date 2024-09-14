@@ -389,52 +389,6 @@ static bool onlynumbers(char *s)
 	return true;
 }
 
-static void splitter(char *s, char **strn, char **strl)
-{
-	int 	i;
-	int		j;
-	char	*substr;
-
-
-	i = 0;
-	while (s[i])
-	{
-		j = i;
-		while (s[i] && s[i] != '+' && s[i] != '-')
-		{
-			if (s[i] == '(')
-			{
-				while (s[i] && s[i] != ')')
-					++i;
-			}
-			++i;
-		}
-		if (j !=i)
-		{
-			if (j > 0)
-				--j;
-			substr = ft_substr(s, j, i);
-			if (onlynumbers(substr))
-			{
-				strcat(*strn, substr);
-			}
-			else
-			{
-				reduce(&substr);
-				if (substr[0] != '-' && substr[0] != '+')
-					strcat(*strl, "+");
-				strcat(*strl, substr);
-			}
-			free(substr);
-		}
-		else if (s[i])
-			++i;
-	}
-	if ((*strl)[0] == '+' && (*strn)[0] == '\0')
-		*strl[0] = ' ';
-
-}
-
 static int detectbrackets(char **str)
 {
 	char 	*substr;
@@ -505,20 +459,33 @@ static void splitter2(char *s, char **strn, char **strl)
 	{
 		j = i;
 		
-		while (s[i] && s[i] != '*' && !isalpha(s[i]))
+		while (s[i] && s[i] != '*' && !isalpha(s[i]) && s[i] != ')')
 		{
 			if (s[i] == '(')
-			{
-				while (s[i] && s[i] != ')')
-					++i;
-			}
+				s[i] = ' ';
+			++i;
+		}
+		
+		if (s[i] == ')')
+		{
+			s[i] = ' ';
 			++i;
 		}
 		
 		if (j !=i)
 		{
 			substr = ft_substr(s, j , i);
-
+			substr = ft_trim(substr);	
+			if (!strcmp(substr, "-"))
+			{
+				free(substr);
+				substr = strdup("-1");
+			}
+			else if (!strcmp(substr, "+"))
+			{
+				free(substr);
+				substr = strdup("1");
+			}
 			if (onlynumbers(substr))
 			{
 				if ((*strn)[0] != '\0')
@@ -527,12 +494,13 @@ static void splitter2(char *s, char **strn, char **strl)
 			}
 			else
 			{
-				if (j != 0 && s[j - 1] != '+' && s[j - 1] != '-' && (*strl)[0] != '\0')
+				if (j != 0 && (*strl)[0] != '\0')
 					strcat(*strl, "*");
 				strcat(*strl, substr);
 			}
 			free(substr);
 		}
+
 		if (isalpha(s[i]))
 		{
 			int k = i;
@@ -541,7 +509,7 @@ static void splitter2(char *s, char **strn, char **strl)
 			substr = ft_substr(s, k, i);
 			if (!isfunctionword(substr))
 			{
-				if (k != 0 && s[k - 1] != '+' && s[k - 1] != '-' && (*strl)[0] != '\0')
+				if (k != 0 && (*strl)[0] != '\0')
 					strcat(*strl, "*");
 			}
 			else
@@ -562,7 +530,7 @@ static void splitter2(char *s, char **strn, char **strl)
 
 void reduce(char **str)
 {
-	printf("   Reducing %s(%s)%s\n", CYAN, *str, RESET);
+	if (v_calc) printf("   Reducing >>%s%s%s<<\n", CYAN, *str, RESET);
 
 	char 	*strn;
 	char 	*strl;
@@ -577,10 +545,7 @@ void reduce(char **str)
 	if (strchr(*str, '*'))
 	{
 		splitter2(*str, &strn, &strl);
-
-		printf("   Reduced to %s%s%s and %s%s%s\n", CYAN, strn, RESET, CYAN, strl, RESET);
 		calc(&strn);
-	
 		free(*str);
 		*str = (char *)calloc(strlen(strn) + strlen(strl) + 3, sizeof(char));
 		if (!*str)
@@ -594,18 +559,65 @@ void reduce(char **str)
 	free(strl);
 }
 
+static void splitter(char *s, char **strn, char **strl)
+{
+	int 	i;
+	int		j;
+	char	*substr;
+
+
+	i = 0;
+	while (s[i])
+	{
+		j = i;
+		while (s[i] && s[i] != '+' && s[i] != '-')
+		{
+			if (s[i] == '(')
+			{
+				while (s[i] && s[i] != ')')
+					++i;
+			}
+			if (s[i] == '*')
+				++i;
+			++i;
+		}
+		if (j !=i)
+		{
+			if (j > 0)
+				--j;
+			substr = ft_substr(s, j, i);
+			if (onlynumbers(substr))
+				strcat(*strn, substr);
+			else
+			{
+				reduce(&substr);
+				if (substr[0] != '-' && substr[0] != '+')
+					strcat(*strl, "+");
+				strcat(*strl, substr);
+			}
+			free(substr);
+		}
+		else if (s[i])
+			++i;
+	}
+	if ((*strl)[0] == '+' && (*strn)[0] == '\0')
+		*strl[0] = ' ';
+
+}
+
 int transformexpression(char **str)
 {
 	char 	*strn;
 	char 	*strl;
 	int		e;
 	
-	strn = (char *)calloc(strlen(*str)+1, sizeof(char));
+	strn = (char *)calloc(strlen(*str)*2, sizeof(char));
 	if (!strn)
 		exit(EXIT_FAILURE);
-	strl = (char *)calloc(strlen(*str)+2, sizeof(char));
+	strl = (char *)calloc(strlen(*str)*2, sizeof(char));
 	if (!strl)
 		exit(EXIT_FAILURE);
+	
 	splitter(*str, &strn, &strl);
 	e = calc(&strn);
 
