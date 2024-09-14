@@ -19,8 +19,6 @@ static void addbrackets(char **str, int i, int j)
 	if (i > 0 && ((*str)[i + 1] == '-' || (*str)[i + 1] == '+'))		
 			(*str)[i - 1] = ' '; 
 	remove_spaces(*str);
-	if (!strchr(*str, '('))
-		transformexpression(str);
 }
 
 static void subtractbrackets(char **str, int i, int j)
@@ -38,13 +36,12 @@ static void subtractbrackets(char **str, int i, int j)
 		++i;
 	}
 	remove_spaces(*str);
-	if (!strchr(*str, '('))
-		transformexpression(str);
 }
 
 static void multiplybrackets(char **str, int i, int j)
 {
 	printf("***Procesando la multiplicación de ");
+	
 	while (i <= j )
 	{
 		printf("%c", (*str)[i]);
@@ -53,90 +50,62 @@ static void multiplybrackets(char **str, int i, int j)
 	printf("\n");
 }
 
+static int whereistheclosingbracket(char *str, int i)
+{
+	int 	b;
+
+	b = 1;
+	while (b != 0)
+	{
+		b = b + (str[i] == '(') - (str[i] == ')');
+		++i;
+	}
+	return --i;
+}
+
 void calc_with_variables(char **str)
 {
 	int 	i;
 	int		j;
-	int		k;
-	int		b;
-	char	*p1;
-	char	*p2;
 	char 	*newp;
-	bool	isfunction;
 
-	p1 = strchr(*str, '(');
-	if (!p1)
-		transformexpression(str);
-	else
+	i = strchr(*str, '(') - (*str);
+	if (i >= 0)
 	{
-		b = 1;
-		i = p1 - (*str);
-		j = i + 1;
-		while (b != 0)
-		{
-			b = b + ((*str)[j] == '(') - ((*str)[j] == ')');
-			++j;
-		}
-		--j;
+		j = whereistheclosingbracket(*str, i + 1);
+		
 		newp = ft_substr(*str, i+1, j);
 		if (strchr(newp, '('))
 		{
-			printf("   Entro con %s\n", newp);
 			calc_with_variables(&newp);
-			printf("   Salgo con %s\n", newp);
-			k = 0;
-			while (k < (int)strlen(newp))
-			{
+			for (int k = 0; k < (int)strlen(newp); ++k)
 				(*str)[i + 1 + k] = newp[k];
-				k++;
-			}
-			while (k < j - i - 1)
-			{
+			for (int k =  (int)strlen(newp); k < j - i - 1; ++k)
 				(*str)[i + 1 + k] = ' ';
-				++k;
-			}
 			remove_spaces(*str);
-			printf("   Me queda %s\n", *str);
-			p2 = strchr(*str, ')');
-			j = p2 - (*str);
 		}
 		free(newp);
-	
-		if ((i > 0 && (*str)[i - 1] == '*') || (*str)[j + 1] == '*' )
-			multiplybrackets(str, i, j);
 
-		else if (i == 0 ||
-			((*str)[i - 1] == '+' && (*str)[j + 1]!= '*'  &&
-			 (*str)[j + 1] != '%' && (*str)[j + 1] != '/' &&
-			 (*str)[j + 1] != '^' && (*str)[j + 1] != '!'))
-			addbrackets(str, i, j);
-
-		else if ((*str)[i - 1] == '-' && (*str)[j + 1]!= '*'  &&
-				 (*str)[j + 1] != '%' && (*str)[j + 1] != '/' &&
-				 (*str)[j + 1] != '^' && (*str)[j + 1] != '!')
-			subtractbrackets(str, i, j);
-
-		else if (!strchr(*str, '(') && !strchr(*str, '^') &&
-				 !strchr(*str, '*') && !strchr(*str, '!') &&
-				 !strchr(*str, '%') && !strchr(*str, '/'))
-				transformexpression(str);
-
-		p2 = strchr(*str, '(');
-		if (p2)
+		i = strchr(*str, '(') - (*str);
+		while ( ( i == 0 || (i > 0 && !isalpha((*str)[i - 1])) ) &&
+			(!strchr(*str, '^') && !strchr(*str, '!') && !strchr(*str, '%') && !strchr(*str, '/')) )
 		{
-			i = p2 - (*str);
-			isfunction = (i > 0 && isalpha((*str)[i - 1]));
-			if (!isfunction)
-				i = 0;
-			if (strchr(*str+i, '(')   && !strstr(*str+i, "*(") &&
-				!strstr(*str+i, ")*") && !strstr(*str+i, ")^") &&
-				!strstr(*str+i, "^(") && !strstr(*str+i, ")!") &&
-				!strstr(*str+i, "%(") && !strstr(*str+i, ")%") &&
-				!strstr(*str+i, "/(") && !strstr(*str+i, ")/"))
+			j = whereistheclosingbracket(*str, i + 1);
+			if ((i > 0 && (*str)[i - 1] == '*') || (*str)[j + 1] == '*' )
 			{
-				printf("  Vuelvo a llamar para arreglar %s\n", *str);
-				calc_with_variables(str);
+				multiplybrackets(str, i, j);
+				break;
 			}
-		}
+			else if ( ((i > 0 && (*str)[i - 1] == '+') || i == 0 ) &&
+				  ((*str)[j + 1] == '+' || (*str)[j + 1] == '-' || (*str)[j + 1] == '\0') )
+				addbrackets(str, i, j);
+
+			else if ( (i > 0 && (*str)[i - 1] == '-') &&
+				  ((*str)[j + 1] == '+' || (*str)[j + 1] == '-' || (*str)[j + 1] == '\0') )
+				subtractbrackets(str, i, j);
+
+			i = strchr(*str, '(') - (*str);
+		} 
 	}
+	transformexpression(str);
 }

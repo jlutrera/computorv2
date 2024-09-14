@@ -65,6 +65,7 @@ extern bool	v_calc;
 void	calc_with_variables(char **str);
 // calc.c
 int		calc(char **str);
+void	reduce(char **str);
 int 	transformexpression(char **str);
 // compute.c
 int 	compute(char **content, t_token **list, bool fortype);

@@ -420,6 +420,7 @@ static void splitter(char *s, char **strn, char **strl)
 			}
 			else
 			{
+				reduce(&substr);
 				if (substr[0] != '-' && substr[0] != '+')
 					strcat(*strl, "+");
 				strcat(*strl, substr);
@@ -492,13 +493,112 @@ static int detectbrackets(char **str)
 	return lookupfunction(str);
 }
 
+static void splitter2(char *s, char **strn, char **strl)
+{
+	int 	i;
+	int		j;
+	char	*substr;
+
+
+	i = 0;
+	while (s[i])
+	{
+		j = i;
+		
+		while (s[i] && s[i] != '*' && !isalpha(s[i]))
+		{
+			if (s[i] == '(')
+			{
+				while (s[i] && s[i] != ')')
+					++i;
+			}
+			++i;
+		}
+		
+		if (j !=i)
+		{
+			substr = ft_substr(s, j , i);
+
+			if (onlynumbers(substr))
+			{
+				if ((*strn)[0] != '\0')
+					strcat(*strn, "*");
+				strcat(*strn, substr);
+			}
+			else
+			{
+				if (j != 0 && s[j - 1] != '+' && s[j - 1] != '-' && (*strl)[0] != '\0')
+					strcat(*strl, "*");
+				strcat(*strl, substr);
+			}
+			free(substr);
+		}
+		if (isalpha(s[i]))
+		{
+			int k = i;
+			while (s[i] && isalpha(s[i]))
+				++i;
+			substr = ft_substr(s, k, i);
+			if (!isfunctionword(substr))
+			{
+				if (k != 0 && s[k - 1] != '+' && s[k - 1] != '-' && (*strl)[0] != '\0')
+					strcat(*strl, "*");
+			}
+			else
+			{
+				free(substr);
+				while(s[i] != ')')
+					++i;
+				++i;
+				substr = ft_substr(s, k, i);
+			}
+			strcat(*strl, substr);
+			free(substr);
+		}
+		if (s[i])
+			++i;
+	}
+}
+
+void reduce(char **str)
+{
+	printf("   Reducing %s(%s)%s\n", CYAN, *str, RESET);
+
+	char 	*strn;
+	char 	*strl;
+	
+	strn = (char *)calloc(strlen(*str)+1, sizeof(char));
+	if (!strn)
+		exit(EXIT_FAILURE);
+	strl = (char *)calloc(strlen(*str)+2, sizeof(char));
+	if (!strl)
+		exit(EXIT_FAILURE);
+	
+	if (strchr(*str, '*'))
+	{
+		splitter2(*str, &strn, &strl);
+
+		printf("   Reduced to %s%s%s and %s%s%s\n", CYAN, strn, RESET, CYAN, strl, RESET);
+		calc(&strn);
+	
+		free(*str);
+		*str = (char *)calloc(strlen(strn) + strlen(strl) + 3, sizeof(char));
+		if (!*str)
+			exit(EXIT_FAILURE);
+		strcat(*str, strn);
+		if (*strn)
+			strcat(*str, "*");
+		strcat(*str, strl);
+	}
+	free(strn);
+	free(strl);
+}
+
 int transformexpression(char **str)
 {
 	char 	*strn;
 	char 	*strl;
 	int		e;
-	
-	if (v_calc) printf("   >> There are variables in the expression %s%s%s <<\n", CYAN, *str, RESET);
 	
 	strn = (char *)calloc(strlen(*str)+1, sizeof(char));
 	if (!strn)
@@ -508,6 +608,7 @@ int transformexpression(char **str)
 		exit(EXIT_FAILURE);
 	splitter(*str, &strn, &strl);
 	e = calc(&strn);
+
 	if (!e)
 	{
 		free(*str);
