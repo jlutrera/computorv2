@@ -465,7 +465,8 @@ static void splitter2(char *s, char **strn, char **strl)
 				s[i] = ' ';
 			++i;
 		}
-		
+		while (isalpha(s[i]) || s[i] == '^' || isdigit(s[i]))
+			++i;
 		if (s[i] == ')')
 		{
 			s[i] = ' ';
@@ -530,7 +531,7 @@ static void splitter2(char *s, char **strn, char **strl)
 
 void reduce(char **str)
 {
-	// if (v_calc) printf("   Reducing >>%s%s%s<<\n", CYAN, *str, RESET);
+	 if (v_calc) printf("   Reducing >>%s%s%s<<\n", CYAN, *str, RESET);
 
 	char 	*strn;
 	char 	*strl;
@@ -586,6 +587,7 @@ static void splitter(char *s, char **strn, char **strl)
 			if (j > 0)
 				--j;
 			substr = ft_substr(s, j, i);
+			printf("SUBSTR = %s\n", substr);
 			if (onlynumbers(substr))
 				strcat(*strn, substr);
 			else
@@ -620,7 +622,6 @@ int transformexpression(char **str)
 	
 	splitter(*str, &strn, &strl);
 	e = calc(&strn);
-
 	if (!e)
 	{
 		free(*str);

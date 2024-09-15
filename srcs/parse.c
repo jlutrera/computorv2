@@ -202,7 +202,7 @@ int parse(char *input, t_token **token_list)
 		response = ft_substr(content, 0, strlen(content));
 		compute(&response, token_list, false);
 			
-		printf("\n   %s\n", response);
+		printf("   %s\n", response);
 		ft_add_history(cpytoken, content, response);
 
 		free(response);
