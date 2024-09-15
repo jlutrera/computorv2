@@ -530,7 +530,7 @@ static void splitter2(char *s, char **strn, char **strl)
 
 void reduce(char **str)
 {
-	if (v_calc) printf("   Reducing >>%s%s%s<<\n", CYAN, *str, RESET);
+	// if (v_calc) printf("   Reducing >>%s%s%s<<\n", CYAN, *str, RESET);
 
 	char 	*strn;
 	char 	*strl;

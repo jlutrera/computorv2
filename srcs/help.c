@@ -33,12 +33,14 @@ char getch()
 
 bool help(char *newinput)
 {
+	const int LINES = 10;
+
 	if (strcmp(newinput, "help") != 0)
 		return 0;
 
 	struct winsize w;
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);		// Obtener el tamaño de la terminal
-	int lines_per_page = w.ws_row - 15;			// Restar una fila para el prompt
+	int lines_per_page = w.ws_row - LINES;			// Restar una fila para el prompt
 
 	const char *help_text[] = {
 		"\n*******************************",

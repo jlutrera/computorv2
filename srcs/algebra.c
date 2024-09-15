@@ -79,7 +79,7 @@ static void multiplybrackets(char **str, int i, int j, int k)
 		exit(EXIT_FAILURE);
 	}
 
-	printf("[%s]*[%s] = ", stra, strb);
+	if (v_calc) printf("%s%s%s * %s%s%s = ", CYAN, stra, RESET, CYAN, strb, RESET);
 	
 	int q = 0;
 	int r = 0;
@@ -105,9 +105,9 @@ static void multiplybrackets(char **str, int i, int j, int k)
 			if ((q > 0|| s > 0) && stra1[0] != '+' && stra1[0] != '-') 
 			{
 				strcat(result, "+");
-				printf("+");
+				if (v_calc) printf(" + ");
 			}
-			printf("%s*%s", stra1, strb1);
+			if (v_calc) printf("%s*%s", stra1, strb1);
 
 			strcat(result, stra1);
 			strcat(result, "*");
@@ -124,14 +124,16 @@ static void multiplybrackets(char **str, int i, int j, int k)
 	}	
 	free(stra);
 	free(strb);
-	printf("\n");
+	if (v_calc) printf("\n");
 	calc_with_variables(&result);
-	printf("STR_in  = %s\n", *str);
-	printf("RESULT  = %s\n", result);
+	// printf("STR_in  = %s\n", *str);
+	// printf("RESULT  = %s\n", result);
 	if (i2 < i)
 	{
 		char *temp = ft_substr(*str, j + 1, strlen(*str));
-		printf("TEMP    = %s\n", temp);
+		// printf("TEMP    = %s\n", temp);
+		if (strlen(*str) < i2 + strlen(result))
+				*str = (char *)realloc(*str, i2 + strlen(result) + 2);
 		if (result[0] != '+' && result[0] != '-')
 		{
 			strcpy(*str + i2, "+");
@@ -139,18 +141,18 @@ static void multiplybrackets(char **str, int i, int j, int k)
 		}
 		else
 		{
-			if (strlen(*str) < i2 + strlen(result))
-				*str = (char *)realloc(*str, i2 + strlen(result) + 1);
 			strcpy(*str + i2, result);
 		}
 		strcat(*str, temp);
-		printf("STR_out = %s\n", *str);
+		// printf("STR_out = %s\n", *str);
 		free(temp);
 	}
 	else
 	{
 		char *temp = ft_substr(*str, j2 + 1, strlen(*str));
-		printf("TEMP    = %s\n", temp);
+		// printf("TEMP    = %s\n", temp);
+		if (strlen(*str) < i + strlen(result))
+				*str = (char *)realloc(*str, i + strlen(result) + 2);
 		if (result[0] != '+' && result[0] != '-')
 		{
 			strcpy(*str + i, "+");
@@ -158,12 +160,10 @@ static void multiplybrackets(char **str, int i, int j, int k)
 		}
 		else
 		{
-			if (strlen(*str) < i + strlen(result))
-				*str = (char *)realloc(*str, i + strlen(result) + 1);
 			strcpy(*str + i, result);
 		}
 		strcat(*str, temp);
-		printf("STR_out = %s\n", *str);
+		// printf("STR_out = %s\n", *str);
 		free(temp);
 	}
 	free(result);
@@ -230,5 +230,6 @@ void calc_with_variables(char **str)
 			i = strchr(*str, '(') - (*str);
 		} 
 	}
-	transformexpression(str);
+	if (!strchr(*str, '^') && !strchr(*str, '!') && !strchr(*str, '%') && !strchr(*str, '/'))
+		transformexpression(str);
 }
