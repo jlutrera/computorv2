@@ -174,7 +174,9 @@ static int multiplybrackets(char **str, int i, int j, int k)
 		if (strlen(*str) < i2 + strlen(result))
 				*str = (char *)realloc(*str, i2 + strlen(result) + 2);
 
-		bool flag = (*str)[i2 + strlen(result) + 2] == '*';
+		bool flag;
+		flag = (strlen(*str) > i2 + strlen(result) + 2) && ((*str)[i2 + strlen(result) + 2] == '*');
+		
 		if (flag) strcpy(*str + i2, "(");
 
 		if (result[0] != '+' && result[0] != '-')

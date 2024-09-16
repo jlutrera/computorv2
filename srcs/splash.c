@@ -26,6 +26,9 @@ void	splash(void)
 	printf("                 \u2587\n");
 	printf("\x1b[0m");
 	printf("\n");
-	printf("If you need, type \"help\"\n");
+	printf("If you need, type \"help\"");
+	if (v_calc)
+		printf("  (%sVisual mode enabled%s)", GREEN, RESET);
+	printf("\n");
 	printf("===================================================\n\n");
 }

@@ -459,14 +459,12 @@ static void splitter2(char *s, char **strn, char **strl)
 	{
 		j = i;
 		
-		while (s[i] && s[i] != '*' && !isalpha(s[i]) && s[i] != ')')
+		while (s[i] && s[i] != '*' && !isalpha(s[i]))
 		{
 			if (s[i] == '(')
 				s[i] = ' ';
 			++i;
 		}
-		while (isalpha(s[i]) || s[i] == '^' || isdigit(s[i]))
-			++i;
 		if (s[i] == ')')
 		{
 			s[i] = ' ';
@@ -505,8 +503,9 @@ static void splitter2(char *s, char **strn, char **strl)
 		if (isalpha(s[i]))
 		{
 			int k = i;
-			while (s[i] && isalpha(s[i]))
+			while (s[i] && (isalpha(s[i]) || s[i] == '^' || isdigit(s[i])))
 				++i;
+
 			substr = ft_substr(s, k, i);
 			if (!isfunctionword(substr))
 			{

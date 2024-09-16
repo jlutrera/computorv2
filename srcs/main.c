@@ -43,19 +43,23 @@ int	main(int argc, char **argv)
 	char	*prompt;
 	int		finish;
 
+ 	if (argc > 2)
+	{
+		printf("Too many arguments\n");
+		return (1);
+	}
+	
 	if (argc == 2)
 	{
 		if (!strcmp(argv[1], "-v"))
-		{
 			v_calc = true;
-			printf("Visual mode enabled\n");
-		}
 		else
 		{
 			printf("Invalid argument\n");
 			return (1);
 		}
 	}
+
 	init_computor(&token_list, &prompt);
 	finish = 0;
 	while (!finish)
