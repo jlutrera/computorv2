@@ -188,23 +188,36 @@ int parse(char *input, t_token **token_list)
 	{
 		if (!syntax_error_content(token, NULL))
 		{
-			if (compute(&token, token_list, false) == 0)
-				printf("   %s\n", token);
+			int r = compute(&token, token_list, false);
+			if (r == 1)
+			{
+				free(token);
+				free(content);
+				free(newinput);
+				return 0;
+			}
+			printf("   %s\n", token);
 		}
 		free(token);
 		free(content);
 	}
 	else if (!syntax_error_token(token) && !syntax_error_content(content, token))
 	{
-		cpytoken = ft_substr(token, 0, strlen(token));
-		add_token_to_list(token_list, token, content);
-			
+		cpytoken = ft_substr(token, 0, strlen(token));			
 		response = ft_substr(content, 0, strlen(content));
-		compute(&response, token_list, false);
-			
+		int r = compute(&response, token_list, false);
+		if (r == 1)
+		{
+			free(response);
+			free(cpytoken);
+			free(newinput);
+			free(token);
+			free(content);
+			return 0;
+		}
+		add_token_to_list(token_list, token, content);
 		printf("   %s\n", response);
 		ft_add_history(cpytoken, content, response);
-
 		free(response);
 		free(cpytoken);
 	}

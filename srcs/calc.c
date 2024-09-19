@@ -586,7 +586,6 @@ static void splitter(char *s, char **strn, char **strl)
 			if (j > 0)
 				--j;
 			substr = ft_substr(s, j, i);
-			printf("SUBSTR = %s\n", substr);
 			if (onlynumbers(substr))
 				strcat(*strn, substr);
 			else
@@ -612,10 +611,10 @@ int transformexpression(char **str)
 	char 	*strl;
 	int		e;
 	
-	strn = (char *)calloc(strlen(*str)*2, sizeof(char));
+	strn = (char *)calloc((strlen(*str) +1 )*2, sizeof(char));
 	if (!strn)
 		exit(EXIT_FAILURE);
-	strl = (char *)calloc(strlen(*str)*2, sizeof(char));
+	strl = (char *)calloc((strlen(*str) + 1)*2, sizeof(char));
 	if (!strl)
 		exit(EXIT_FAILURE);
 	
@@ -648,6 +647,7 @@ int	calc(char **str)
 	bool	isnegative;
 
 	op = 0;
+	printf("   Calculating %s%s%s\n", CYAN, *str, RESET);
 	isnegative = (*str)[0] == '(' && (*str)[1] == '-' && onlynumbers(*str) && (strchr(*str, '!') || strchr(*str, '^'));
 	if (isnegative)
 	    (*str)[1] = '+';

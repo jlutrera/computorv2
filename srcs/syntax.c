@@ -195,6 +195,8 @@ bool	syntax_error_content(char *content, char *token)
 			{
 				while (content[i] != '\0' && isalpha(content[i]))
 					i++;
+				if (isdigit(content[i]))
+					return printf_error("Invalid name", content, i);
 				word = ft_substr(content, j, i);
 				if (iscommandword(word))
 				{

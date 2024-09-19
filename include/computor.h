@@ -34,7 +34,7 @@
 # define LN10			2.3025850930
 # define LN2 			0.6931471806
 # define TAYLOR_TERMS 	200
-# define PRECISION		1e-10
+# define PRECISION		1e-6
 
 # define GREEN 	"\033[0;32m"
 # define YELLOW	"\033[0;33m"

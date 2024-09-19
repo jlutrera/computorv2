@@ -14,10 +14,9 @@
 
 void	splash(void)
 {
-	printf("==================  jutrera-\u00A9  =====================\n\n");
 	printf("\x1b[33m");
 	printf("   \u2587\u2587                    \u2587\n");
-	printf("  \u2587                     \u2587\u2587\u2587                 \u2587\u2587\u2587\n");
+	printf("  \u2587   jutrera-\u00A9         \u2587\u2587\u2587                 \u2587\u2587\u2587\n");
 	printf("  \u2587                      \u2587                    \u2587\n");
 	printf("  \u2587   \u2587\u2587\u2587\u2587 \u2587\u2587 \u2587  \u2587\u2587  \u2587 \u2587 \u2587 \u2587\u2587\u2587\u2587 \u2587\u2587          \u2587\u2587\u2587\n");
 	printf("  \u2587   \u2587  \u2587 \u2587 \u2587 \u2587 \u2587 \u2587 \u2587 \u2587 \u2587 \u2587  \u2587 \u2587     \u2587  \u2587  \u2587\n");
@@ -28,7 +27,6 @@ void	splash(void)
 	printf("\n");
 	printf("If you need, type \"help\"");
 	if (v_calc)
-		printf("  (%sVisual mode enabled%s)", GREEN, RESET);
-	printf("\n");
-	printf("===================================================\n\n");
+		printf("  %s- Visual mode enabled%s", GREEN, RESET);
+	printf("\n\n\n");
 }

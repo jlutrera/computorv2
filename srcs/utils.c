@@ -233,7 +233,11 @@ void	token_type(t_token **list)
 		else
 		{
 			content_temp = ft_substr(ptr->content, 0, strlen(ptr->content));
-			compute(&content_temp, list, true);
+			if (compute(&content_temp, list, true) != 0)
+			{
+				free(content_temp);
+				return;
+			}
 			if (strchr(content_temp, '['))
 				ptr->type = MATRIX;	
 			else

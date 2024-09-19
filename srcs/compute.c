@@ -246,6 +246,7 @@ int	compute(char **s, t_token **list, bool fortype)
 				change_content(s, j, i, cvar);
 				i = 0;
 			}
+
 			free(var);
 		}
 		else
@@ -258,8 +259,10 @@ int	compute(char **s, t_token **list, bool fortype)
 				++i;
 			var = ft_substr(*s, j, i);
 			cvar = search_content_in_functions(var, list);
+			printf("cvar = %s\n", cvar);
 			if (cvar)
 			{
+				calc(&cvar);
 				change_content(s, j, i, cvar);
 				i = 0;
 				free(cvar);
