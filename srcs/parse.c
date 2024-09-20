@@ -133,7 +133,7 @@ static void	ft_add_history(char *token, char *content, char *result)
 	free(history);
 }
 
-static bool variable_not_found(char *token, char *content, t_token **token_list)
+static bool variable_not_found(char *token, char *content, t_token *token_list)
 {
 	t_token	*ptr;
 	char	*aux;
@@ -158,20 +158,34 @@ static bool variable_not_found(char *token, char *content, t_token **token_list)
 			aux = ft_substr(content, j, i);
 			if (!isfunctionword(aux))
 			{
-				ptr = *token_list;
-				while (ptr)
+				if (content[i] == '(')
 				{
-					if (!strcmp(ptr->token, aux))
-						break;
-					ptr = ptr->next;
+					free(aux);
+					if (content[i] == '(' && isalpha(content[i+1] && content[i+1] != variable))
+						return printf_error("Variable cannot be a function", NULL, -1);
+
+					if (isdigit(content[i+1]))
+						while (content[i] && content[i] != ')')
+							++i;
 				}
-				if (!ptr)
+				else
 				{
-					printf_error("Variable not found", aux, -1);
-					return 1;
+					printf("aux = %s\n", aux);
+
+					ptr = token_list;
+					while (ptr)
+					{
+						if (!strcmp(ptr->token, aux))
+							break;
+						ptr = ptr->next;
+					}
+					free(aux);
+					if (!ptr)
+						return printf_error("Variable not found", NULL, -1);
 				}
 			}
-			free(aux);
+			else
+				free(aux);
 		}
 		else if (j == i)
 			++i;
@@ -241,17 +255,17 @@ int parse(char *input, t_token **token_list)
 				return 0;
 			}
 			printf("   %s\n", token);
+			free(token);
+			free(content);
 		}
-		free(token);
-		free(content);
 	}
-	else if (!syntax_error_token(token) && !syntax_error_content(content, token) && !variable_not_found(token, content, token_list))
+	else if (!syntax_error_token(token) && !syntax_error_content(content, token) && !variable_not_found(token, content, *token_list))
 	{
 		cpytoken = ft_substr(token, 0, strlen(token));			
 		response = ft_substr(content, 0, strlen(content));
 		
 		int r = compute(&response, token_list, cpytoken);
-		if (r != 0)
+		if (r == 1)
 		{
 			free(response);
 			free(cpytoken);
@@ -264,14 +278,13 @@ int parse(char *input, t_token **token_list)
 		printf("   %s\n", response);
 		ft_add_history(cpytoken, content, response);
 		free(response);
-		free(cpytoken);
+		free(cpytoken);;
 	}
 	else
 	{
 		free(token);
 		free(content);
 	}
-	
 	free(newinput);
 	return 0;
 }

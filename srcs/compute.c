@@ -162,9 +162,6 @@ static bool cont_in_token(char *token, char *var, char *cvar, t_token **list)
 
 	i = 0;
 	len = strlen(var);
-	printf("var = %s\n", var);
-	printf("cvar = %s\n", cvar);
-	printf("token = %s\n", token);
 	while (var[i] != '\0')
 	{
 		j = 0;
@@ -181,12 +178,8 @@ static bool cont_in_token(char *token, char *var, char *cvar, t_token **list)
 	t_token *ptr = *list;
 	while (ptr)
 	{
-		if (strstr(ptr->token, var))
-		{
-			printf("ptr->token  = %s\n", ptr->token);
-			if (!strcmp(token, ptr->token))
+		if (strstr(ptr->token, var) && !strcmp(token, ptr->token))
 				return 1;
-		}
 		ptr = ptr->next;
 	}
 	return 0;
@@ -233,8 +226,8 @@ int	compute(char **s, t_token **list, char *token)
 	int 	i;
 	int		j;
 	int		k;
-	char 	*cvar = NULL;
-	char	*var = NULL;
+	char 	*cvar;
+	char	*var;
 
 	i = 0;
 	while ((*s)[i])
@@ -263,7 +256,6 @@ int	compute(char **s, t_token **list, char *token)
 		else 
 		{
 			k = i;
-			
 			while ((*s)[i] && (*s)[i] != ')') 
 				++i;
 			while((*s)[i] == ')')
@@ -273,13 +265,11 @@ int	compute(char **s, t_token **list, char *token)
 			if (cvar)
 			{
 				if (strchr(cvar, '('))
-				{
 					compute(&cvar, list, token);
-				}
+
 				calc(&cvar);
 				change_content(s, j, i, cvar);
 				i = 0;
-				free(cvar);
 			}
 			else
 				i = k;

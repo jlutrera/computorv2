@@ -76,22 +76,21 @@ bool types(char *content, t_token **list)
 	char	*token;
 	int		i;
 	int		j;
-	int		len;
 
-	len = strlen(content);
-	//Si no es el comando type
-	if (len < 4)
-		return 0;
-	else
+	if (strchr(content, '='))
+	 	return 0;
+
+	i = 0;
+	while (content[i] && content[i] != ' ')
+		++i;
+
+	order = ft_substr(content, 0, 4);
+	if (strcmp(order, "type"))
 	{
-		order = ft_substr(content, 0, 4);
-		if (strcmp(order, "type") || strchr(content, '='))
-		{
-			free(order);
-			return 0;
-		}
 		free(order);
+		return 0;
 	}
+	free(order);
 
 	//Es el comando type pero no hay datos
 	if (!*list)
@@ -108,7 +107,7 @@ bool types(char *content, t_token **list)
 	}
 
 	//Es el comando type CON parámetros separados por espacios
-	order = ft_substr(content, 4, len);
+	order = ft_substr(content, 4, strlen(content));
 	j = 0;
 	i = 0;
 	

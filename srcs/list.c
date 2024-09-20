@@ -57,27 +57,25 @@ static void	listall(t_token **list)
 
 bool list(char *content, t_token **list)
 {
-	int		len;
 	char	*order;
 	char	*token;
 	int		i;
 	int		j;
 
-	len = strlen(content);
-	//Si no es el comando list
-	if (len < 4)
-		return 0;
-	else
-	{
-		order = ft_substr(content, 0, 4);
-		if (strcmp(order, "list") || strchr(content, '='))
-		{
-			free(order);
-			return 0;
-		}
-		free(order);
-	}
+	if (strchr(content, '='))
+	 	return 0;
 
+	i = 0;
+	while (content[i] && content[i] != ' ')
+		++i;
+	order = ft_substr(content, 0, i);
+	if (strcmp(order, "list"))
+	{
+		free(order);
+		return 0;
+	}
+	free(order);
+	
 	//Es el comando delete pero no hay datos
 	if (!*list)
 	{
@@ -92,8 +90,8 @@ bool list(char *content, t_token **list)
 		return 1;	
 	}
 
-		//Es el comando delete CON parámetros separados por espacios
-	order = ft_substr(content, 4, len);
+	//Es el comando delete CON parámetros separados por espacios
+	order = ft_substr(content, 4, strlen(content));
 	j = 0;
 	i = 0;
 	
