@@ -213,6 +213,7 @@ bool	syntax_error_content(char *content, char *token)
 					free(word);
 					return printf_error("Same name in asignament and computational part", content, i-1);
 				}
+
 				if (content[i] == '\0' || content[i] == '(')
 					--i;
 				free(word);

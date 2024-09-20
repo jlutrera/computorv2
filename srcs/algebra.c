@@ -227,7 +227,7 @@ static int whereistheclosingbracket(char *str, int i)
 	int 	b;
 
 	b = 1;
-	while (b != 0)
+	while (str[i] && b != 0)
 	{
 		b = b + (str[i] == '(') - (str[i] == ')');
 		++i;

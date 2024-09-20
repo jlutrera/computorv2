@@ -17,7 +17,7 @@ static void	print_number(double d)
 	int part_int;
 	
 	part_int = (int)d;
-	if (d == 0)
+	if (d < PRECISION && d > -PRECISION)
 		printf("0");
 	else if (d - part_int == 0)
 		printf("%0.0f", d);

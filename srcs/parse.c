@@ -133,7 +133,51 @@ static void	ft_add_history(char *token, char *content, char *result)
 	free(history);
 }
 
+static bool variable_not_found(char *token, char *content, t_token **token_list)
+{
+	t_token	*ptr;
+	char	*aux;
+	char    variable;
+	int		i;
+	int		j;
 
+	i = strchr(token, '(') - token;
+	if (i > 0)
+		variable = token[i+1];
+	else
+		variable = 0;
+
+	i = 0;
+	while (content[i] != '\0')
+	{
+		j = i;
+		while (content[i] && isalpha(content[i]))
+			++i;
+		if (i - j > 1 || (i - j == 1 && content[j] != 'i' && content[j] != variable))
+		{
+			aux = ft_substr(content, j, i);
+			if (!isfunctionword(aux))
+			{
+				ptr = *token_list;
+				while (ptr)
+				{
+					if (!strcmp(ptr->token, aux))
+						break;
+					ptr = ptr->next;
+				}
+				if (!ptr)
+				{
+					printf_error("Variable not found", aux, -1);
+					return 1;
+				}
+			}
+			free(aux);
+		}
+		else if (j == i)
+			++i;
+	}
+	return 0;
+}
 
 int parse(char *input, t_token **token_list)
 {
@@ -188,7 +232,7 @@ int parse(char *input, t_token **token_list)
 	{
 		if (!syntax_error_content(token, NULL))
 		{
-			int r = compute(&token, token_list, false);
+			int r = compute(&token, token_list, NULL);
 			if (r == 1)
 			{
 				free(token);
@@ -201,12 +245,13 @@ int parse(char *input, t_token **token_list)
 		free(token);
 		free(content);
 	}
-	else if (!syntax_error_token(token) && !syntax_error_content(content, token))
+	else if (!syntax_error_token(token) && !syntax_error_content(content, token) && !variable_not_found(token, content, token_list))
 	{
 		cpytoken = ft_substr(token, 0, strlen(token));			
 		response = ft_substr(content, 0, strlen(content));
-		int r = compute(&response, token_list, false);
-		if (r == 1)
+		
+		int r = compute(&response, token_list, cpytoken);
+		if (r != 0)
 		{
 			free(response);
 			free(cpytoken);

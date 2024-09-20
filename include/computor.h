@@ -29,12 +29,12 @@
 #  include "../mlx_linux/mlx.h"
 # endif
 
-# define PI				3.1415926536
-# define E				2.7182818285
-# define LN10			2.3025850930
-# define LN2 			0.6931471806
-# define TAYLOR_TERMS 	200
-# define PRECISION		1e-6
+# define PI				3.1416
+# define E				2.7183
+# define LN10			2.3026
+# define LN2 			0.6931
+# define TAYLOR_TERMS 	10
+# define PRECISION		0.0001
 
 # define GREEN 	"\033[0;32m"
 # define YELLOW	"\033[0;33m"
@@ -70,7 +70,7 @@ int		calc(char **str);
 void	reduce(char **str);
 int 	transformexpression(char **str);
 // compute.c
-int 	compute(char **content, t_token **list, bool fortype);
+int 	compute(char **content, t_token **list, char *token);
 // delete.c
 bool	delete(char *content, t_token **list);
 // equations.c

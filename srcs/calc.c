@@ -647,7 +647,6 @@ int	calc(char **str)
 	bool	isnegative;
 
 	op = 0;
-	printf("   Calculating %s%s%s\n", CYAN, *str, RESET);
 	isnegative = (*str)[0] == '(' && (*str)[1] == '-' && onlynumbers(*str) && (strchr(*str, '!') || strchr(*str, '^'));
 	if (isnegative)
 	    (*str)[1] = '+';
@@ -658,13 +657,7 @@ int	calc(char **str)
 
 	if (!onlynumbers(*str))
 	{
-		if (v_calc)
-		{
-			printf("\nProvisional result : %s%s%s\n\n", CYAN, *str, RESET);
-			printf("*********************************************\n");
-			printf("* Now, I'm trying to reduce that expression *\n");
-			printf("*********************************************\n");
-		}
+		if (v_calc) printf("\nProvisional result : %s%s%s\n\n", CYAN, *str, RESET);
 		calc_with_variables(str);
 		return 0;
 	}

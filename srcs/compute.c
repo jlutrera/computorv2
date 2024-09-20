@@ -154,7 +154,7 @@ static void calc_function(char **temp, char *fvariable, char *value)
 	}
 }
 
-static bool cont_in_token(char *var, char *cvar)
+static bool cont_in_token(char *token, char *var, char *cvar, t_token **list)
 {
 	int	i;
 	int	j;
@@ -162,6 +162,9 @@ static bool cont_in_token(char *var, char *cvar)
 
 	i = 0;
 	len = strlen(var);
+	printf("var = %s\n", var);
+	printf("cvar = %s\n", cvar);
+	printf("token = %s\n", token);
 	while (var[i] != '\0')
 	{
 		j = 0;
@@ -174,6 +177,17 @@ static bool cont_in_token(char *var, char *cvar)
 			return 1;
 		if (var[i] != '\0')
 			++i;
+	}
+	t_token *ptr = *list;
+	while (ptr)
+	{
+		if (strstr(ptr->token, var))
+		{
+			printf("ptr->token  = %s\n", ptr->token);
+			if (!strcmp(token, ptr->token))
+				return 1;
+		}
+		ptr = ptr->next;
 	}
 	return 0;
 }
@@ -192,6 +206,7 @@ static char *search_content_in_functions(char *var, t_token **list)
 	while (ptr)
 	{
 		fname = get_name(ptr->token);
+		
 		if (fname && !strcmp(fname, cname))
 		{
 			free(fname);
@@ -213,17 +228,15 @@ static char *search_content_in_functions(char *var, t_token **list)
 	return NULL;
 }
 
-int	compute(char **s, t_token **list, bool fortype)
+int	compute(char **s, t_token **list, char *token)
 {
 	int 	i;
 	int		j;
 	int		k;
-	int		error;
 	char 	*cvar = NULL;
 	char	*var = NULL;
 
 	i = 0;
-	error = 0;
 	while ((*s)[i])
 	{
 		j = i;
@@ -237,19 +250,17 @@ int	compute(char **s, t_token **list, bool fortype)
 			cvar = search_content_in_variables(var, list);
 			if (cvar)
 			{
-				if (cont_in_token(var, cvar))
+				if (token && cont_in_token(token, var, cvar, list))
 				{
-					error = 1;
 					free(var);
-					break;
+					return printf_error("Circular reference", *s, j);
 				}
 				change_content(s, j, i, cvar);
 				i = 0;
 			}
-
 			free(var);
 		}
-		else
+		else 
 		{
 			k = i;
 			
@@ -258,10 +269,13 @@ int	compute(char **s, t_token **list, bool fortype)
 			while((*s)[i] == ')')
 				++i;
 			var = ft_substr(*s, j, i);
-			cvar = search_content_in_functions(var, list);
-			printf("cvar = %s\n", cvar);
+			cvar = search_content_in_functions(var, list);	
 			if (cvar)
 			{
+				if (strchr(cvar, '('))
+				{
+					compute(&cvar, list, token);
+				}
 				calc(&cvar);
 				change_content(s, j, i, cvar);
 				i = 0;
@@ -272,13 +286,6 @@ int	compute(char **s, t_token **list, bool fortype)
 			free(var);
 		}
 	}
-	if (error && !fortype)
-	{
-		printf_error("The assignment contains a logical error", cvar, -1);
-	}
-	else if (!error)
-	{
-		error = calc(s);
-	}
-	return error;
+
+	return calc(s);
 }

@@ -233,7 +233,7 @@ void	token_type(t_token **list)
 		else
 		{
 			content_temp = ft_substr(ptr->content, 0, strlen(ptr->content));
-			if (compute(&content_temp, list, true) != 0)
+			if (compute(&content_temp, list, NULL) != 0)
 			{
 				free(content_temp);
 				return;
