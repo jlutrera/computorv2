@@ -80,6 +80,8 @@ static int multiplybrackets(char **str, int i, int j, int k)
 			i2 = ++k;
 			while ((*str)[k] != ')' && (*str)[k] != '\0')
 				++k;
+			if ((*str)[k] == ')' && (*str)[k + 1] != '*' && (*str)[k + 1] != '+' && (*str)[k + 1] != '-' && (*str)[k + 1] != '/')
+				return 0;
 		}
 		else
 		{
@@ -99,8 +101,8 @@ static int multiplybrackets(char **str, int i, int j, int k)
 	stra = ft_substr(*str, i2, j2);
 	strb = ft_substr(*str, i + 1, j);
 
-	printf("STRa = %s\n", stra);
-	printf("STRb = %s\n", strb);
+	// printf("STRa = %s\n", stra);
+	// printf("STRb = %s\n", strb);
 	if (checkstr(&stra) || checkstr(&strb))
 	{
 		free(stra);

@@ -17,14 +17,14 @@ static int change_content(char **s, int j, int i, char *dest)
 	int		len_s;
 	int		len_dest;
 	int		extra;
-	int		added;
 	char	*var_to_change;
 	int 	new_len;
 	char 	*new_str;
 
 	len_s = strlen(*s);
 	len_dest = strlen(dest);
-	added = 0;
+
+	extra = 0;
 	while (check_brackets(dest))
 	{
 		dest[len_dest-1] = '\0';
@@ -32,6 +32,9 @@ static int change_content(char **s, int j, int i, char *dest)
 	}
 
 	var_to_change = ft_substr(*s, j, i);
+
+	if (v_calc) printf("REPLACING %s%s%s for %s%s%s into %s%s%s\n", CYAN, dest, RESET, CYAN, var_to_change, RESET, CYAN, *s, RESET);
+
 	while (check_brackets(var_to_change))
 	{
 		var_to_change[strlen(var_to_change)-1] = '\0';
@@ -40,17 +43,15 @@ static int change_content(char **s, int j, int i, char *dest)
 	if (!strcmp(var_to_change, dest))
 	{
 		free(var_to_change);
-		return added;
+		return 0;
 	}
 
 	free(var_to_change);
 	if (j > 0 && isdigit((*s)[j-1]))
-		extra = 1; // añado *()
-	else
-		extra = 0; //añado ()
+		++extra; // añado *()
 
 	new_len = len_s - (i - j) + len_dest + 2 + extra;
-	new_str = (char *)malloc((new_len + 1) * sizeof(char));
+	new_str = (char *)calloc((new_len + 1), sizeof(char));
 	if (!new_str)
 		exit(EXIT_FAILURE);
 
@@ -58,23 +59,20 @@ static int change_content(char **s, int j, int i, char *dest)
 	if (extra)
 		new_str[j++] = '*';
 	
-	if ((i != len_s || j != 0) && (j > 0 && (*s)[j-1] != '(') && (i <= len_s && (*s)[i-1] != ')'))
+	if ((j > 0 || i < len_s ) && dest[0] != '(' && dest[strlen(dest)-1] != ')')
 	{
 		new_str[j++] = '(';
-		++added;
-	}
-
-	new_str[j]= '\0';
-	strcat(new_str, dest);
-	if ((i != len_s || j != 0) && (j > 0 && (*s)[j-1] != '(') && (i <= len_s && (*s)[i-1] != ')'))
-	{
+		strcat(new_str, dest);
 		strcat(new_str, ")");
-		++added;
+		extra += 2;
 	}
+	else
+		strcat(new_str, dest);
+
 	strcat(new_str, *s + i);
 	free(*s);
 	*s = new_str;
-	return (added+extra);
+	return (extra);
 }
 
 static char *get_name(char *t)
@@ -226,6 +224,7 @@ int	compute(char **s, t_token **list, char *token)
 	int 	i;
 	int		j;
 	int		k;
+	int		b;
 	char 	*cvar;
 	char	*var;
 
@@ -256,26 +255,25 @@ int	compute(char **s, t_token **list, char *token)
 		else 
 		{
 			k = i;
-			while ((*s)[i] && (*s)[i] != ')') 
-				++i;
-			while((*s)[i] == ')')
-				++i;
+			b = 1;
+			while ((*s)[++i] && b != 0)
+				b = b + ((*s)[i] == '(') - ((*s)[i] == ')');
+
 			var = ft_substr(*s, j, i);
 			cvar = search_content_in_functions(var, list);	
 			if (cvar)
 			{
 				if (strchr(cvar, '('))
 					compute(&cvar, list, token);
-
 				calc(&cvar);
 				change_content(s, j, i, cvar);
+				
 				i = 0;
+				free(cvar);
 			}
-			else
-				i = k;
+			i = k;
 			free(var);
 		}
 	}
-
 	return calc(s);
 }

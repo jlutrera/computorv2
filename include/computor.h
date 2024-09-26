@@ -23,18 +23,19 @@
 # include <sys/ioctl.h>
 # include <termios.h>
 
+
 # ifdef __APPLE__
 #  include <mlx.h>
 # else
 #  include "../mlx_linux/mlx.h"
 # endif
 
-# define PI				3.1416
-# define E				2.7183
-# define LN10			2.3026
-# define LN2 			0.6931
-# define TAYLOR_TERMS 	10
-# define PRECISION		0.0001
+# define PI				3.1415926535
+# define E				2.7182818284
+# define LN10			2.3025850929
+# define LN2 			0.6931471806
+# define TAYLOR_TERMS 	30
+# define PRECISION		1e-10
 
 # define GREEN 	"\033[0;32m"
 # define YELLOW	"\033[0;33m"
@@ -101,7 +102,7 @@ double	ft_exp(double x);
 double	ft_deg(double x);
 double	ft_rad(double x);
 // parse.c
-int		parse(char *input, t_token **token_list);
+int		parse(char **input, t_token **token_list);
 // plot.c
 bool	plot(char *input);
 // solve.c

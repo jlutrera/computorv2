@@ -65,7 +65,12 @@ int	main(int argc, char **argv)
 	while (!finish)
 	{	
 		input = readline(prompt);
-		finish = parse(input, &token_list);
+		if (input)
+		{
+			if (*input)
+				finish = parse(&input, &token_list);
+			free(input);
+		}
 	}
 
 	return (0);
