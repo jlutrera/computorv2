@@ -169,8 +169,6 @@ static bool variable_not_found(char *token, char *content, t_token *token_list)
 				}
 				else
 				{
-					printf("aux = %s\n", aux);
-
 					ptr = token_list;
 					while (ptr)
 					{

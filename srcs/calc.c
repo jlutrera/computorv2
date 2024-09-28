@@ -139,13 +139,15 @@ static char *operatefunction(char *aux, char *number, int *e)
 	result = 0;
 
 	if (!strcmp(aux, "sqrt"))
-	{
-		*e = (a < 0);
-		if (*e)
-			printf_error("The even root of a negative number is not defined", NULL, -1);
-		else
-			result = ft_root(a, 2);
+	{	
+		if (a < 0)
+		{
+			result = ft_root(-a, 2);
+			return strcat(doubletostr(result),"i");
+		}
+		result = ft_root(a, 2);
 	}
+
 	else if (!strcmp(aux, "exp"))
 	{
 		*e = (!isinteger(a));
@@ -341,7 +343,7 @@ static int lookupfunction(char **s)
 		
 			if ((*s)[i] == '(' && isfunctionword(aux))
 			{
-				if (v_calc) printf("   Function %s%s%s\n", CYAN, aux, RESET);
+				if (v_calc) printf("   Function: %s%s%s", CYAN, aux, RESET);
 				k = ++i;
 				if (strchr("-+", (*s)[i]))
 					++i;
@@ -356,13 +358,13 @@ static int lookupfunction(char **s)
 				}
 				
 				number = ft_substr(*s, k, i);
-				if (v_calc)  printf("   Number %s%s%s\n", CYAN, number, RESET);
+				if (v_calc)  printf("(%s%s%s)", YELLOW, number, RESET);
 				if (k != i && isdigit(number[strlen(number) - 1]))
 				{
 					result = operatefunction(aux, number, &e);
 					if (!e)
 					{
-						if (v_calc) printf("   Result %s%s%s\n", CYAN, result, RESET);
+						if (v_calc) printf(" = %s%s%s\n", GREEN, result, RESET);
 						if ((*s)[i] == ')')
 							++i;
 						update_result(s, j, i, result);
@@ -429,7 +431,9 @@ static int detectbrackets(char **str)
 {
 	char 	*substr;
 	int		i;
-	int		b;
+	int 	j;
+	int		b1;
+	int 	b2;
 	int		start;
 
 	if (isanumber(*str))
@@ -441,23 +445,35 @@ static int detectbrackets(char **str)
 			++i;
 		if ((*str)[i] == '(')
 		{
-			b = 1;
+			b1 = 1;
 			start = ++i;
-			while ((*str)[i] && b !=0)
+			while ((*str)[i] && b1 !=0)
 			{			
-				b = b + ((*str)[i] == '(') - ((*str)[i] == ')');
-				if (b == 0)
+				b1 = b1 + ((*str)[i] == '(') - ((*str)[i] == ')');
+				if (b1 == 0)
 				{
 
 					substr = ft_substr(*str, start, i);
 					while (substr[0] == '(' && substr[strlen(substr)-1] == ')')
-					{					
-						substr[0] = ' ';
-						substr[strlen(substr)-1] = ' ';
-						substr = ft_trim(substr);
+					{
+						j  = 1;
+						b2 = 1;
+						while (substr[j] && b2 != 0)
+						{
+							b2 = b2 + (substr[j] == '(') - (substr[j] == ')');
+							++j;
+						}
+						if (substr[j] == '\0' && b2 == 0)
+						{
+							substr[0] = ' ';
+							substr[strlen(substr)-1] = ' ';
+							substr = ft_trim(substr);
+						}
+						else
+							break;
 					}
 					
-					if (v_calc) printf("+ Bracket: %s%s%s\n", CYAN, substr, RESET);
+					if (v_calc) printf("+ BRACKET: %s%s%s\n", CYAN, substr, RESET);
 				
 					if (detectbrackets(&substr) || lookupfunction(&substr))
 					{
@@ -481,7 +497,7 @@ static int detectbrackets(char **str)
 
 					free(substr);
 					remove_spaces(*str);
-					if (v_calc) printf("- Bracket: %s%s%s\n", CYAN, *str, RESET);
+					if (v_calc) printf("- BRACKET: %s%s%s\n", CYAN, *str, RESET);
 				}
 				++i;
 			}
@@ -713,7 +729,7 @@ int	calc(char **str)
 
 	if (!onlynumbers(*str))
 	{
-		if (v_calc) printf("\nProvisional result : %s%s%s\n\n", CYAN, *str, RESET);
+		if (v_calc) printf("\nBEFORE reducing : %s%s%s\n", CYAN, *str, RESET);
 		if (!strstr(*str, ")^") && !strstr(*str, ")!") && !strstr(*str, ")%") &&
 			!strstr(*str, "^(") && !strstr(*str, "%("))
 			calc_with_variables(str);
@@ -749,13 +765,13 @@ int	calc(char **str)
 			{
 				if (v_calc) 
 				{
-					printf("   Operation %s %.2f %c", CYAN, a, (*str)[i]);
+					printf("   Calc    : %s%.2f%c", CYAN, a, (*str)[i]);
 					if ( (*str)[i] != '!')
 						printf(" %.2f", b);
-					printf(" = %s %s\n", aux, RESET);
+					printf(" = %s%s\n", aux, RESET);
 				}
 				update_result(str, start, end, aux);
-				printf("   Result: %s%s%s\n", CYAN, *str, RESET);
+				printf("   Result  : %s%s%s\n", CYAN, *str, RESET);
 				op = 0;
 			}
 			free(aux);

@@ -30,12 +30,12 @@
 #  include "../mlx_linux/mlx.h"
 # endif
 
-# define PI				3.1415926535
-# define E				2.7182818284
-# define LN10			2.3025850929
-# define LN2 			0.6931471806
+# define PI				3.141592653589793
+# define E				2.718281828459045
+# define LN10			2.302585092994046
+# define LN2			0.693147180559945
 # define TAYLOR_TERMS 	30
-# define PRECISION		1e-10
+# define PRECISION		1e-15
 
 # define GREEN 	"\033[0;32m"
 # define YELLOW	"\033[0;33m"

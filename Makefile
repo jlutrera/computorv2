@@ -11,6 +11,7 @@ CC 			=	gcc
 CFLAGS 		=	-Wall -Wextra -Werror
 LEAKS 		=	-fsanitize=address -g
 LDFLAGS 	=	-lreadline
+DEPFLAGS 	=	-MMD -MP  # Flags to generate dependency files
 
 # Source files
 SRCS		=	./srcs/algebra.c \
@@ -39,6 +40,9 @@ endif
 # Object files
 OBJS 		= 	$(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
 
+# Dependency files
+DEPS 		= 	$(OBJS:.o=.d)
+
 # Color codes for terminal output
 RED 		= 	\033[0;31m
 GREEN	 	= 	\033[0;32m
@@ -53,10 +57,10 @@ all			: 	$(NAME)
 
 # Compile object files
 
-$(OBJDIR)/%.o: 	$(SRCDIR)/%.c $(INCDIR)
+$(OBJDIR)/%.o: 	$(SRCDIR)/%.c
 				@mkdir -p $(dir $@)
 				@printf "Compiling $(YELLOW)$<$(RESET)\r"
-				@$(CC) $(CFLAGS) $(LEAKS) -I$(INCDIR) -c $< -o $@
+				@$(CC) $(CFLAGS) $(LEAKS) $(DEPFLAGS) -I$(INCDIR) -c $< -o $@
 				@printf "                                                                         \r"
 
 # Link program
@@ -82,8 +86,8 @@ fclean		: 	clean
 # Recompile everything
 re			: 	fclean all
 
-# Prevent errors if object files are deleted
--include $(OBJS:.o=.d)
+# Include dependency files (if they exist)
+-include $(DEPS)
 
 # Phony targets
 .PHONY		: 	all clean fclean re
