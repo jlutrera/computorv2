@@ -12,6 +12,22 @@
 
 #include "computor.h"
 
+static bool foundoperation(char *dest)
+{
+	int i;
+
+	i = 0;
+	if (dest[0] == '-' || dest[0] == '+')
+		++i;
+	while (dest[i])
+	{
+		if (strchr("+-*/%^!", dest[i]))
+			return 1;
+		++i;
+	}
+	return 0;
+}
+
 static int change_content(char **s, int j, int i, char *dest)
 {
 	int		len_s;
@@ -58,8 +74,8 @@ static int change_content(char **s, int j, int i, char *dest)
 	strncpy(new_str, *s, j);
 	if (extra)
 		new_str[j++] = '*';
-	
-	if ((j > 0 || i < len_s ) && dest[0] != '(' && dest[strlen(dest)-1] != ')')
+
+	if (!(dest[0] == '(' && dest[strlen(dest)-1] == ')') && foundoperation(dest) )
 	{
 		new_str[j++] = '(';
 		strcat(new_str, dest);
@@ -70,8 +86,10 @@ static int change_content(char **s, int j, int i, char *dest)
 		strcat(new_str, dest);
 
 	strcat(new_str, *s + i);
+	remove_spaces(new_str);
 	free(*s);
 	*s = new_str;
+	if (v_calc) printf("NEW STRING: %s%s%s\n", CYAN, *s, RESET);
 	return (extra);
 }
 
@@ -256,22 +274,20 @@ int	compute(char **s, t_token **list, char *token)
 		{
 			k = i;
 			b = 1;
-			while ((*s)[++i] && b != 0)
-				b = b + ((*s)[i] == '(') - ((*s)[i] == ')');
+			while ((*s)[++k] && b != 0)
+				b = b + ((*s)[k] == '(') - ((*s)[k] == ')');
 
-			var = ft_substr(*s, j, i);
+			var = ft_substr(*s, j, k);
 			cvar = search_content_in_functions(var, list);	
 			if (cvar)
 			{
 				if (strchr(cvar, '('))
 					compute(&cvar, list, token);
 				calc(&cvar);
-				change_content(s, j, i, cvar);
-				
+				change_content(s, j, k, cvar);
 				i = 0;
 				free(cvar);
 			}
-			i = k;
 			free(var);
 		}
 	}

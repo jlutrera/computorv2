@@ -223,8 +223,14 @@ void	token_type(t_token **list)
 	int		i;
 	int		j;
 	bool	typed;
+	bool	vc;
 
 	ptr = *list;
+	//guardamos el valor de v_calc y
+	vc = v_calc;
+	//evitamos que se muestren los cálculos de nuevo
+	v_calc = false;
+
 	while (ptr)
 	{
 		typed  = false;
@@ -276,4 +282,6 @@ void	token_type(t_token **list)
 		}
 		ptr = ptr->next;
 	}
+	//restauramos el valor de v_calc
+	v_calc = vc;
 }

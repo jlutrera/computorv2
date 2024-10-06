@@ -245,16 +245,16 @@ static int	findoperation(int c, char *s)
 		case 2:
 			pos = strchr(s, '*');
 			pos2 = strchr(s, '/');
-			if ((pos2 && pos2 < pos) || !pos)
+			if (!pos || (pos2 && pos2 < pos))
 				pos = pos2;
 			pos3 = strchr(s, '%');
-			if ((pos3 && pos3 < pos) || !pos)
+			if (!pos || (pos3 && pos3 < pos))
 				pos = pos3;
 			break;
 		case 3:
 			pos = strchr(s + 1, '+');
 			pos2 = strchr(s + 1, '-');
-			if ((pos2 && pos && pos2 < pos) || !pos)
+			if (!pos || (pos2 && pos2 < pos))
 				pos = pos2;
 			break;
 	}
@@ -287,9 +287,9 @@ static bool thereareoperations(char *s)
 	while (s[++i])
 	{
 		if (i > 0 && strchr("+-*/%^", s[i]))
-			break;
+			return true;
 	}
-	return (s[i] != '\0');
+	return false;
 }
 
 static void resolvedoblesigne(char **str)
@@ -317,6 +317,25 @@ static void resolvedoblesigne(char **str)
 		i = -1;
 		while (++i < (int)strlen(*str))
 			(*str)[i] = (*str)[i+1];
+	}
+	else if ((*str)[0] == '-' && (*str)[1] == '(')
+	{
+		i = 1;
+		(*str)[1] = ' ';
+		while ((*str)[i] && (*str)[i] != ')')
+		{
+			if ((*str)[i] == '+')
+				(*str)[i] = ' ';
+			else if ((*str)[i] == '-')
+			{
+				(*str)[0] = ' ';
+				(*str)[i] = '+';
+			}
+			++i;
+		}
+		if ((*str)[i] == ')')
+			(*str)[i] = ' ';
+		remove_spaces(*str);
 	}
 }
 
@@ -416,9 +435,11 @@ static bool isanumber(char *s)
 		i = 1;
 	else
 		i = 0;
+	if (s[i] == '-' || s[i] == '+')
+		++i;
 	while (s[i])
 	{
-		if (!isdigit(s[i]) && s[i] != '.' && s[i] != '-')
+		if (!isdigit(s[i]) && s[i] != '.')
 			break;
 		++i;
 	}
@@ -436,8 +457,10 @@ static int detectbrackets(char **str)
 	int 	b2;
 	int		start;
 
+
 	if (isanumber(*str))
 		return 0;
+
 	i = 0;
 	while ((*str)[i])
 	{
@@ -472,7 +495,7 @@ static int detectbrackets(char **str)
 						else
 							break;
 					}
-					
+
 					if (v_calc) printf("+ BRACKET: %s%s%s\n", CYAN, substr, RESET);
 				
 					if (detectbrackets(&substr) || lookupfunction(&substr))
@@ -496,7 +519,6 @@ static int detectbrackets(char **str)
 					}
 
 					free(substr);
-					remove_spaces(*str);
 					if (v_calc) printf("- BRACKET: %s%s%s\n", CYAN, *str, RESET);
 				}
 				++i;
@@ -504,131 +526,6 @@ static int detectbrackets(char **str)
 		}
 	}
 	return lookupfunction(str);
-}
-
-static void splitter2(char *s, char **strn, char **strl)
-{
-	int 	i;
-	int		j;
-	char	*substr;
-
-
-	i = 0;
-	while (s[i])
-	{
-		j = i;
-		
-		while (s[i] && s[i] != '*' && !isalpha(s[i]))
-		{
-			if (s[i] == '(' && (s[i - 1] != '/' && s[i - 1] != '^' && s[i - 1] != '%'))
-				s[i] = ' ';
-			++i;
-		}
-		if (s[i] == ')' && (s[i + 1] != '/' && s[i + 1] != '^' && s[i + 1] != '%') && s[i + 1] != '!')
-		{
-			s[i] = ' ';
-			++i;
-		}
-		
-		if (j !=i)
-		{
-			substr = ft_substr(s, j , i);
-			substr = ft_trim(substr);
-			if (substr[0] == '(')
-			{
-				while (s[i] != ')')
-					++i;
-				++i;
-				free(substr);
-				substr = ft_substr(s, j - 1, i);
-			}
-
-			if (!strcmp(substr, "-"))
-			{
-				free(substr);
-				substr = strdup("-1");
-			}
-			else if (!strcmp(substr, "+"))
-			{
-				free(substr);
-				substr = strdup("1");
-			}
-
-			if (onlynumbers(substr))
-			{
-				if ((*strn)[0] != '\0')
-					strcat(*strn, "*");
-				strcat(*strn, substr);
-			}
-			else
-			{
-				if (j != 0 && (*strl)[0] != '\0' && substr[0] != '(')
-					strcat(*strl, "*");
-				strcat(*strl, substr);
-			}
-			free(substr);
-		}
-
-		if (isalpha(s[i]))
-		{
-			int k = i;
-			while (s[i] && (isalpha(s[i]) || s[i] == '^' || isdigit(s[i])))
-				++i;
-
-			substr = ft_substr(s, k, i);
-			if (!isfunctionword(substr))
-			{
-				if (k != 0 && (*strl)[0] != '\0')
-					strcat(*strl, "*");
-			}
-			else
-			{
-				free(substr);
-				while(s[i] != ')')
-					++i;
-				++i;
-				substr = ft_substr(s, k, i);
-			}
-			strcat(*strl, substr);
-			free(substr);
-		}
-		if (s[i])
-			++i;
-	}
-}
-
-void reduce(char **str)
-{
-	 if (v_calc) printf("   Reducing >>%s%s%s<<\n", CYAN, *str, RESET);
-
-	char 	*strn;
-	char 	*strl;
-	
-	strn = (char *)calloc(strlen(*str)+1, sizeof(char));
-	if (!strn)
-		exit(EXIT_FAILURE);
-	strl = (char *)calloc(strlen(*str)+2, sizeof(char));
-	if (!strl)
-		exit(EXIT_FAILURE);
-	
-	if (strchr(*str, '*'))
-	{
-		splitter2(*str, &strn, &strl);
-		if (v_calc) printf("   Split >>%s%s%s and %s%s%s<<\n", CYAN, strn, RESET, CYAN, strl, RESET);
-		calc(&strn);
-		free(*str);
-		*str = (char *)calloc(strlen(strn) + strlen(strl) + 3, sizeof(char));
-		if (!*str)
-			exit(EXIT_FAILURE);
-		strcat(*str, strn);
-		if (*strn)
-			strcat(*str, "*");
-		strcat(*str, strl);
-
-		if (v_calc) printf("   Result >>%s%s%s<<\n", CYAN, *str, RESET);
-	}
-	free(strn);
-	free(strl);
 }
 
 static void splitter(char *s, char **strn, char **strl)
@@ -662,8 +559,6 @@ static void splitter(char *s, char **strn, char **strl)
 				strcat(*strn, substr);
 			else
 			{
-				
-				reduce(&substr);
 				if (substr[0] != '-' && substr[0] != '+')
 					strcat(*strl, "+");
 				strcat(*strl, substr);
@@ -729,10 +624,9 @@ int	calc(char **str)
 
 	if (!onlynumbers(*str))
 	{
-		if (v_calc) printf("\nBEFORE reducing : %s%s%s\n", CYAN, *str, RESET);
-		if (!strstr(*str, ")^") && !strstr(*str, ")!") && !strstr(*str, ")%") &&
-			!strstr(*str, "^(") && !strstr(*str, "%("))
-			calc_with_variables(str);
+		if (v_calc) printf("\nREDUCING : %s%s%s\n", CYAN, *str, RESET);
+
+		calc_with_variables(str);
 		return 0;
 	}
 	if ((*str[0] == '(') && (*str)[strlen(*str)-1] == ')' && isanumber(*str))
@@ -765,13 +659,13 @@ int	calc(char **str)
 			{
 				if (v_calc) 
 				{
-					printf("   Calc    : %s%.2f%c", CYAN, a, (*str)[i]);
+					printf("   Calc    : %s%.2f %c", CYAN, a, (*str)[i]);
 					if ( (*str)[i] != '!')
 						printf(" %.2f", b);
 					printf(" = %s%s\n", aux, RESET);
 				}
 				update_result(str, start, end, aux);
-				printf("   Result  : %s%s%s\n", CYAN, *str, RESET);
+				if (v_calc) printf("   Result  : %s%s%s\n", CYAN, *str, RESET);
 				op = 0;
 			}
 			free(aux);

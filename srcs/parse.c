@@ -59,13 +59,17 @@ static void	add_token_to_list(t_token **list, char *token, char *content)
 {
 	t_token	*new_token;
 	t_token	*ptr;
+	char 	*cpycontent;
+	char 	*cpytoken;
 
 	new_token = (t_token *)calloc(sizeof(t_token), 1);
 	if (!new_token)
 		exit(EXIT_FAILURE);
 
-	new_token->token = token;
-	new_token->content = content;
+	cpycontent = ft_substr(content, 0, strlen(content));
+	cpytoken = ft_substr(token, 0, strlen(token));
+	new_token->token = cpytoken;
+	new_token->content = cpycontent;
 
 	if (*list == NULL)
 		*list = new_token;
@@ -73,14 +77,14 @@ static void	add_token_to_list(t_token **list, char *token, char *content)
 	{
 		//Busco un token en la lista
 		ptr = *list;
-		while (ptr && strcmp(ptr->token, token))
+		while (ptr && strcmp(ptr->token, cpytoken))
 			ptr = ptr->next;
-		//Si existe reemplazo su  y tipo
+		//Si existe reemplazo su contenido
 		if (ptr)
 		{
 			free(ptr->content);
-			ptr->content = content;
-			free(token);
+			ptr->content = cpycontent;
+			free(cpytoken);
 			free(new_token);
 		}
 		else
@@ -123,6 +127,7 @@ static void	ft_add_history(char *token, char *content, char *result)
 	history = (char *)malloc(len * sizeof(char));
 	if (!history)
 		exit(EXIT_FAILURE);
+	
 	strcpy(history, token);
 	strcat(history, " = ");
 	strcat(history, content);
@@ -176,9 +181,14 @@ static bool variable_not_found(char *token, char *content, t_token *token_list)
 							break;
 						ptr = ptr->next;
 					}
-					free(aux);
+					
 					if (!ptr)
-						return printf_error("Variable not found", NULL, -1);
+					{
+						printf("%sError%s: Variable %s%s%s not found\n", RED, RESET, RED, aux, RESET);
+						free(aux);
+						return 1;
+					}
+					free(aux);
 				}
 			}
 			else
@@ -227,13 +237,9 @@ int parse(char **input, t_token **token_list)
 	
 	if (!strcmp(content, "?"))
 	{
-		if (!syntax_error_content(token, NULL))
-		{
-			if (compute(&token, token_list, NULL) == 0)
+		if (!syntax_error_content(token, NULL) &&
+			compute(&token, token_list, NULL) == 0)
 				printf("   %s\n", token);
-			free(token);
-			free(content);
-		}
 	}
 	else if (!syntax_error_token(token) &&
 			 !syntax_error_content(content, token) &&
@@ -247,19 +253,11 @@ int parse(char **input, t_token **token_list)
 			printf("   %s\n", response);
 			ft_add_history(cpytoken, content, response);
 		}
-		else
-		{
-			free(token);
-			free(content);
-		}
 		free(response);
 		free(cpytoken);
 	}
-	else
-	{
-		free(token);
-		free(content);
-	}
-	
+
+	free(token);
+	free(content);
 	return 0;
 }
