@@ -546,8 +546,6 @@ static void splitter(char *s, char **strn, char **strl)
 				while (s[i] && s[i] != ')')
 					++i;
 			}
-			if (s[i] == '*')
-				++i;
 			++i;
 		}
 		if (j !=i)

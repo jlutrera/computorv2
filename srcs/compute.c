@@ -49,7 +49,7 @@ static int change_content(char **s, int j, int i, char *dest)
 
 	var_to_change = ft_substr(*s, j, i);
 
-	if (v_calc) printf("REPLACING %s%s%s with %s%s%s into %s%s%s\n", CYAN, dest, RESET, CYAN, var_to_change, RESET, CYAN, *s, RESET);
+	if (v_calc) printf("REPLACING %s%s%s for %s%s%s in %s%s%s\n", CYAN, dest, RESET, CYAN, var_to_change, RESET, CYAN, *s, RESET);
 
 	while (check_brackets(var_to_change))
 	{
