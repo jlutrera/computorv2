@@ -288,6 +288,17 @@ int	compute(char **s, t_token **list, char *token)
 				i = 0;
 				free(cvar);
 			}
+			else
+			{
+				char *fname = get_name(var);
+				if (!isfunctionword(fname))
+				{
+					free(var);
+					free(fname);
+					return printf_error("Function not found", *s, j);
+				}
+				free(fname);
+			}
 			free(var);
 		}
 	}

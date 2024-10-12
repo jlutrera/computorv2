@@ -372,7 +372,10 @@ static int lookupfunction(char **s)
 					if ((*s)[i] == ')')
 						break;
 					if (isalpha((*s)[i]))
-						return printf_error("Invalid character in number", *s, i);
+					{
+						free(aux);
+						return 1;
+					}
 					++i;
 				}
 				
@@ -587,6 +590,8 @@ int transformexpression(char **str)
 	splitter(*str, &strn, &strl);
 	e = calc(&strn);
 	if (!e)
+		e = complex_calc(&strl);
+	if (!e)
 	{
 		free(*str);
 		*str = (char *)calloc(strlen(strn) + strlen(strl) + 1, sizeof(char));
@@ -625,6 +630,8 @@ int	calc(char **str)
 		if (v_calc) printf("\nREDUCING : %s%s%s\n", CYAN, *str, RESET);
 
 		calc_with_variables(str);
+		if (onlynumbers(*str) && thereareoperations(*str))
+			calc(str);
 		return 0;
 	}
 	if ((*str[0] == '(') && (*str)[strlen(*str)-1] == ')' && isanumber(*str))

@@ -66,6 +66,7 @@ extern bool	v_calc;
 
 // algebra.c
 void	calc_with_variables(char **str);
+int 	complex_calc(char **str);
 // calc.c
 int		calc(char **str);
 int 	transformexpression(char **str);

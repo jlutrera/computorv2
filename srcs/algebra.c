@@ -57,24 +57,31 @@ void calc_with_variables(char **str)
 	int		j;
 	char 	*newp;
 
+	
 	i = strchr(*str, '(') - (*str);
 	if (i >= 0)
 	{
 		j = whereistheclosingbracket(*str, i + 1);
 		
 		newp = ft_substr(*str, i+1, j);
+		
 		if (v_calc) printf("   Calculating : %s%s%s\n", CYAN, newp, RESET);
 		if (strchr(newp, '('))
 		{
+			
 			calc_with_variables(&newp);
+			remove_spaces(newp);
+			
 			for (int k = 0; k < (int)strlen(newp); ++k)
 				(*str)[i + 1 + k] = newp[k];
-			for (int k =  (int)strlen(newp); k < j - i - 1; ++k)
+
+			for (int k = (int)strlen(newp); k < j - i - 1; ++k)
 				(*str)[i + 1 + k] = ' ';
+
 			remove_spaces(*str);
 		}
 		free(newp);
-
+		
 		i = strchr(*str, '(') - (*str);
 		while ( ( i == 0 || (i > 0 && !isalpha((*str)[i - 1])) ) )
 		{
@@ -93,4 +100,63 @@ void calc_with_variables(char **str)
 	}
 	
 	transformexpression(str);
+}
+
+int complex_calc(char **str)
+{
+	printf("  Complex : %s%s%s\n", CYAN, *str, RESET);
+
+	int i;
+	
+	i = strchr(*str, 'i') - (*str);
+	if (i >= 0 && (*str)[i + 1] == '^')
+	{
+		int j = i + 2;
+		while(isdigit((*str)[j]))
+			++j;
+		char *aux = ft_substr(*str, i + 2, j);
+
+		int power = atof(aux);
+		free(aux);
+		
+		while (--j != i)
+		{
+			(*str)[j] = ' ';
+		}
+
+		if (power % 2 == 0)
+		{
+			(*str)[j] = ' ';
+			if ((*str)[j - 1] == '*')
+				(*str)[j - 1] = ' ';
+			while (i >= 0 && (*str)[i] != '+' && (*str)[i] != '-')
+				--i;
+			if (i >= 0)
+			{
+				if ((*str)[i] == '+')
+					(*str)[i] = '-';
+				else if (i > 0)
+					(*str)[i] = '+';
+				else
+					(*str)[i] = ' ';
+			}
+			else
+			{
+				char *aux2 = (char *)calloc(strlen(*str) + 2, sizeof(char));
+				if (!aux2)
+					exit(EXIT_FAILURE);
+				
+				strcpy(aux2,"-");
+				strcat(aux2, *str);
+				free(*str);
+				*str = aux2;
+			}
+		}
+		remove_spaces(*str);
+		if (strlen(*str) == 0 || (strlen(*str) > 0 && (*str)[strlen(*str) - 1] == '-'))
+			strcat(*str, "+1");
+		printf("  Complex result : %s%s%s\n", CYAN, *str, RESET);
+	}
+
+	return 0;
 }
