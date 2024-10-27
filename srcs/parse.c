@@ -152,6 +152,7 @@ static bool variable_not_found(char *token, char *content, t_token *token_list)
 		variable = 0;
 
 	i = 0;
+
 	while (content[i] != '\0')
 	{
 		j = i;
@@ -181,7 +182,7 @@ static bool variable_not_found(char *token, char *content, t_token *token_list)
 							break;
 						ptr = ptr->next;
 					}
-					
+					printf("*****  variable = %c     aux = %s \n", variable, aux);
 					if (!ptr)
 					{
 						printf("%sError%s: Variable %s%s%s not found\n", RED, RESET, RED, aux, RESET);

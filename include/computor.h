@@ -70,6 +70,9 @@ int 	complex_calc(char **str);
 // calc.c
 int		calc(char **str);
 int 	transformexpression(char **str);
+int doingproducts(char **strl, char *substr);
+// complex.c
+int		complex_calc(char **str);
 // compute.c
 int 	compute(char **content, t_token **list, char *token);
 // delete.c
@@ -84,7 +87,6 @@ bool	help(char *newinput);
 // list.c
 bool	list(char *content, t_token **list);
 // maths.c
-bool 	isinteger(double num);
 double	ft_mod(double a, double b);
 double	ft_power(double base, int exponent);
 double	ft_root(double a, int n);
@@ -101,6 +103,8 @@ double	ft_ln(double x);
 double	ft_exp(double x);
 double	ft_deg(double x);
 double	ft_rad(double x);
+// matrix.c
+int calc_with_matrices(char **str);
 // parse.c
 int		parse(char **input, t_token **token_list);
 // plot.c

@@ -12,6 +12,15 @@
 
 #include "computor.h"
 
+
+static bool isinteger(double num)
+{
+	int part_int;
+
+	part_int = (int)num;
+	return (num - part_int) == 0.0;
+}
+
 static char	*doubletostr(double d)
 {
 	char *aux;
@@ -460,7 +469,6 @@ static int detectbrackets(char **str)
 	int 	b2;
 	int		start;
 
-
 	if (isanumber(*str))
 		return 0;
 
@@ -531,6 +539,84 @@ static int detectbrackets(char **str)
 	return lookupfunction(str);
 }
 
+static char *newstr(char *substr, int c)
+{
+	int		i;
+	char	*t;
+
+	t = (char *)calloc(strlen(substr) + 1, sizeof(char));
+	if (!t)
+		exit(EXIT_FAILURE);
+	strcpy(t, substr);
+	i = 0;
+	while (substr[i])
+	{
+		if ((c && isalpha(substr[i])))
+			t[i] = ' ';
+		else if (!c && !isalpha(substr[i]) && substr[i] != '*')
+			t[i] = ' ';
+		++i;
+	}
+	remove_spaces(t);
+	while (strlen(t) > 0 && t[strlen(t) - 1] == '*')
+	{
+		t[strlen(t) - 1] = ' ';
+		remove_spaces(t);
+	}
+	while (t[0] == '*')
+	{
+		t[0] = ' ';
+		remove_spaces(t);
+	}
+	i = 0;
+	while (t[i])
+	{
+		if (i < (int)strlen(t) && t[i] == '*' && t[i + 1] == '*')
+			t[i] = ' ';
+		++i;
+	}
+	remove_spaces(t);
+	return (t);
+}
+
+int doingproducts(char **strl, char *substr)
+{
+	char *aux; //solo números
+	char *aux2; //solo variables (letras)
+	int i;
+
+	i = 0;
+	while (substr[i] == '*' || substr[i] == '.' || isdigit(substr[i]) ||
+			isalpha(substr[i]) || substr[i] == '(' || substr[i] == ')')
+	{
+		if (substr[i] == '(')
+		{
+			++i;
+			if (substr[i] == '-' || substr[i] == '+')
+				++i;
+			while (substr[i] != ')' && (substr[i] == '.' || isdigit(substr[i]) || isalpha(substr[i])))
+				++i;
+		}
+		else
+			++i;
+	}
+	if (substr[i] != '\0')
+		return 0;
+
+	aux = newstr(substr, 1);
+	aux2 = newstr(substr, 0);
+
+	calc(&aux);
+	strcpy(*strl, aux);
+	if (strlen(aux) > 0)
+		strcat(*strl, "*");
+	strcat(*strl, aux2);
+
+	free(aux);
+	free(aux2);
+	return 1;
+}
+
 static void splitter(char *s, char **strn, char **strl)
 {
 	int 	i;
@@ -562,7 +648,8 @@ static void splitter(char *s, char **strn, char **strl)
 			{
 				if (substr[0] != '-' && substr[0] != '+')
 					strcat(*strl, "+");
-				strcat(*strl, substr);
+				if (!doingproducts(strl, substr))
+					strcat(*strl, substr);
 			}
 			free(substr);
 		}
@@ -572,6 +659,19 @@ static void splitter(char *s, char **strn, char **strl)
 	if ((*strl)[0] == '+' && (*strn)[0] == '\0')
 		*strl[0] = ' ';
 
+}
+
+static int check_complex_operators(char *str)
+{
+	if (v_calc) printf("   Checking Complex operators in : %s%s%s\n", CYAN, str, RESET);
+	if (strchr(str, '!'))
+		return printf_error("Factorial not allowed in complex numbers", str, 0);
+	if (strchr(str, '/'))
+		return printf_error("Division not allowed in complex numbers", str, 0);
+	if (strchr(str, '%'))
+		return printf_error("Modulus not allowed in complex numbers", str, 0);
+	 
+	return 0;
 }
 
 int transformexpression(char **str)
@@ -594,10 +694,12 @@ int transformexpression(char **str)
 	if (!e)
 	{
 		free(*str);
-		*str = (char *)calloc(strlen(strn) + strlen(strl) + 1, sizeof(char));
+		*str = (char *)calloc(strlen(strn) + strlen(strl) + 2, sizeof(char));
 		if (!*str)
 			exit(EXIT_FAILURE);
 		strcat(*str, strn);
+		if (strlen(strn) > 0 && strlen(strl) > 0 && strl[0] != '+' && strl[0] != '-')
+			strcat(*str, "+");
 		strcat(*str, strl);
 	}
 	free(strn);
@@ -629,11 +731,19 @@ int	calc(char **str)
 	{
 		if (v_calc) printf("\nREDUCING : %s%s%s\n", CYAN, *str, RESET);
 
+		if (strchr(*str, 'i') && check_complex_operators(*str))
+			return 1;
+
 		calc_with_variables(str);
-		if (onlynumbers(*str) && thereareoperations(*str))
+		if (onlynumbers(*str) && thereareoperations(*str) && !strchr(*str, '['))
 			calc(str);
+
 		return 0;
 	}
+	
+	if (strchr(*str, '['))
+		return calc_with_matrices(str);
+	
 	if ((*str[0] == '(') && (*str)[strlen(*str)-1] == ')' && isanumber(*str))
 	{
 		(*str)[0] = ' ';

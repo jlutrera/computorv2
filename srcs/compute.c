@@ -245,6 +245,20 @@ int	compute(char **s, t_token **list, char *token)
 	int		b;
 	char 	*cvar;
 	char	*var;
+	char	variable[2];
+
+	variable[0] = '\0';
+	variable[1] = '\0';
+	i = 0;
+	j = 0;
+	while ((*s)[i])
+	{
+		if ((*s)[i] == '(')
+			j = i;
+		++i;
+	}
+	if (j != 0)
+		variable[0] = (*s)[j + 1];
 
 	i = 0;
 	while ((*s)[i])
@@ -268,6 +282,11 @@ int	compute(char **s, t_token **list, char *token)
 				change_content(s, j, i, cvar);
 				i = 0;
 			}
+			else if (!token && strcmp(var, "i") && strcmp(var, variable))
+			{
+				free(var);
+				return printf_error("Variable not found", *s, j);
+			}
 			free(var);
 		}
 		else 
@@ -278,7 +297,7 @@ int	compute(char **s, t_token **list, char *token)
 				b = b + ((*s)[k] == '(') - ((*s)[k] == ')');
 
 			var = ft_substr(*s, j, k);
-			cvar = search_content_in_functions(var, list);	
+			cvar = search_content_in_functions(var, list);
 			if (cvar)
 			{
 				if (strchr(cvar, '('))

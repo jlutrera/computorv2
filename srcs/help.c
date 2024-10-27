@@ -33,7 +33,7 @@ char getch()
 
 bool help(char *newinput)
 {
-	const int LINES = 10;
+	const int LINES = 12;
 
 	if (strcmp(newinput, "help") != 0)
 		return 0;
@@ -68,14 +68,14 @@ bool help(char *newinput)
 		"   ------------------------",
 		"   Syntax: list [var1] [var2] ...",
 		"   Examples:",
-		"     list x y z    (displays the value of x, y, and z)",
+		"     list x y z    (display the value of x, y, and z)",
 		"     list x        (display the value of x)",
 		"     list          (display the value of ALL stored variables)",
 		"\n7. Display the variable type",
 		"   -------------------------",
 		"   Syntax: type [var1] [var2] ...",
 		"   Examples:",
-		"     type x y z    (displays the type of x, y, and z)",
+		"     type x y z    (display the type of x, y, and z)",
 		"     type x        (display the type of x)",
 		"     type          (display the types of ALL stored variables)",
 		"\n8. Evaluate an expression",
@@ -92,10 +92,10 @@ bool help(char *newinput)
 		"   Syntax: var_name = expression",
 		"   Note: The variable name must contain only alphabetic symbols.",
 		"   Examples:",
-		"     x = 5 + 3*x * 2*x^2",
+		"     x = 5 + 3*2 * 2*5^2",
 		"     x = 5",
 		"     x = 5 + 3i",
-		"     x = sin(x) - 5%6",
+		"     x = sin(7) - 5%6",
 		"     x = [[3,4];[-3, 1.4]] ** [[1,0];[0,1]]",
 		"\n2. Set a function",
 		"   --------------",

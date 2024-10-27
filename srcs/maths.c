@@ -12,14 +12,6 @@
 
 #include "computor.h"
 
-bool isinteger(double num)
-{
-	int part_int;
-
-	part_int = (int)num;
-	return (num - part_int) == 0.0;
-}
-
 double ft_mod(double a, double b)
 {
 	int mod;

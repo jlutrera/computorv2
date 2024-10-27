@@ -16,6 +16,8 @@ DEPFLAGS 	=	-MMD -MP  # Flags to generate dependency files
 # Source files
 SRCS		=	./srcs/algebra.c \
 				./srcs/calc.c \
+				./srcs/complex.c \
+				./srcs/matrix.c \
 				./srcs/compute.c \
 				./srcs/delete.c \
 				./srcs/equations.c \
