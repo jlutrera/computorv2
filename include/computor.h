@@ -65,16 +65,16 @@ typedef struct s_token
 extern bool	v_calc;
 
 // algebra.c
-void	calc_with_variables(char **str);
-int 	complex_calc(char **str);
+void	calc_with_variables(char **str, int mode);
+int 	complex_calc(char **str, int mode);
 // calc.c
-int		calc(char **str);
-int 	transformexpression(char **str);
-int doingproducts(char **strl, char *substr);
+int		calc(char **str, int mode);
+int 	transformexpression(char **str, int mode);
+int 	doingproducts(char **strl, char *substr, int mode);
 // complex.c
-int		complex_calc(char **str);
+int		complex_calc(char **str, int mode);
 // compute.c
-int 	compute(char **content, t_token **list, char *token);
+int 	compute(char **content, t_token **list, char *token, int mode);
 // delete.c
 bool	delete(char *content, t_token **list);
 // equations.c
@@ -104,7 +104,7 @@ double	ft_exp(double x);
 double	ft_deg(double x);
 double	ft_rad(double x);
 // matrix.c
-int calc_with_matrices(char **str);
+int 	calc_with_matrices(char **str, int mode);
 // parse.c
 int		parse(char **input, t_token **token_list);
 // plot.c
@@ -120,8 +120,10 @@ bool	syntax_error_equation(char *str);
 // types.c
 bool 	types(char *content, t_token **list);
 // utils.c
+char	*doubletostr(double d);
 char	*ft_trim(char *str);
 char	*ft_substr(const char *src, size_t i, size_t j);
+bool	isinteger(double num);
 void	remove_spaces(char *source);
 bool	printf_error(char *msg, char *s, int i);
 bool	bad_digits(char *s);

@@ -12,10 +12,35 @@
 
 #include "computor.h"
 
-// Función para intercambiar dos filas
-static void	swap_rows(char ***matrix, int c, int row1, int row2)
+static double **creatematrixdouble(int r)
 {
-	char *temp;
+	double **result;
+
+	result = (double **)malloc(r * sizeof(double *));
+	if (!result)
+		exit(EXIT_FAILURE);
+	for (int i = 0; i < r; i++)
+	{
+		result[i] = (double *)malloc(r * sizeof(double));
+		if (!result[i])
+			exit(EXIT_FAILURE);
+	}
+	return result;
+}
+
+static void freematrixdouble(double **matrix, int r)
+{
+	if (matrix == NULL)
+		return;
+	for (int i = 0; i < r; i++)
+		free(matrix[i]);
+	free(matrix);
+}
+
+// Función para intercambiar dos filas
+static void	swap_rows(double **matrix, int c, int row1, int row2)
+{
+	double temp;
 
 	for (int i = 0; i < c; i++)
 	{
@@ -26,11 +51,17 @@ static void	swap_rows(char ***matrix, int c, int row1, int row2)
 }
 
 // Función para calcular el determinante de una matriz usando eliminación de Gauss
-static double	calcdeterminant(char ***matrix, int l)
+static double	calcdeterminant(double **m, int l)
 {
 	double	det;  // Inicializa el determinante
 	int		max_index;
 	double	factor;
+	double	**matrix;
+
+	matrix = creatematrixdouble(l);
+	for (int i = 0; i < l; ++i)
+		for (int j = 0; j < l; ++j)
+			matrix[i][j] = m[i][j];
 
 	// Proceso de eliminación de Gauss
 	det = 1;
@@ -40,11 +71,11 @@ static double	calcdeterminant(char ***matrix, int l)
 		max_index = k;
 		for (int i = k + 1; i < l; i++)
 		{
-			if (ft_abs(strtod(matrix[i][k], NULL)) > ft_abs(strtod(matrix[max_index][k], NULL)))
+			if (ft_abs(matrix[i][k]) > ft_abs(matrix[max_index][k]))
 				max_index = i;
 		}
 		// Si el pivote es cero, el determinante es cero
-		if (strtod(matrix[max_index][k], NULL) == 0)
+		if (matrix[max_index][k] == 0)
 			return 0;
 		// Intercambio de filas si es necesario
 		if (max_index != k) 
@@ -55,24 +86,26 @@ static double	calcdeterminant(char ***matrix, int l)
 		// Eliminación de los elementos debajo del pivote
 		for (int i = k + 1; i < l; i++)
 		{
-			factor = strtod(matrix[i][k], NULL) / strtod(matrix[k][k], NULL);
+			factor = matrix[i][k] / matrix[k][k];
 			for (int j = k; j < l; j++)
 			{
-				double a = strtod(matrix[i][j], NULL);
-				double b = strtod(matrix[k][j], NULL);
-				sprintf(matrix[i][j], "%.6f", a - factor * b);
+				double a = matrix[i][j];
+				double b = matrix[k][j];
+				matrix[i][j] = a - factor * b;
 			}
 		}
 		// Multiplica el determinante por el pivote
-		det *= strtod(matrix[k][k], NULL);
+		det *= matrix[k][k];
 	}
 
+	freematrixdouble(matrix, l);
 	return det;
 }
 
 static char ***addmatrix(char ***m, char ***m2, int r, int c)
 {
-	char ***result;
+	char 	***result;
+	double	add;
 
 	result = (char ***)malloc(r * sizeof(char **));
 	if (!result)
@@ -84,10 +117,8 @@ static char ***addmatrix(char ***m, char ***m2, int r, int c)
 			exit(EXIT_FAILURE);
 		for (int j = 0; j < c; j++)
 		{
-			result[i][j] = (char *)malloc(100 * sizeof(char));
-			if (!result[i][j])
-				exit(EXIT_FAILURE);
-			sprintf(result[i][j], "%.6f", strtod(m[i][j], NULL) + strtod(m2[i][j], NULL));
+			add = strtod(m[i][j], NULL) + strtod(m2[i][j], NULL);
+			result[i][j] = doubletostr(add);
 		}
 	}
 	return result;
@@ -95,7 +126,8 @@ static char ***addmatrix(char ***m, char ***m2, int r, int c)
 
 static char ***submatrix(char ***m, char ***m2, int r, int c)
 {
-	char ***result;
+	char 	***result;
+	double	subst;
 
 	result = (char ***)malloc(r * sizeof(char **));
 	if (!result)
@@ -107,10 +139,8 @@ static char ***submatrix(char ***m, char ***m2, int r, int c)
 			exit(EXIT_FAILURE);
 		for (int j = 0; j < c; j++)
 		{
-			result[i][j] = (char *)malloc(100 * sizeof(char));
-			if (!result[i][j])
-				exit(EXIT_FAILURE);
-			sprintf(result[i][j], "%.6f", strtod(m[i][j], NULL) - strtod(m2[i][j], NULL));
+			subst = strtod(m[i][j], NULL) - strtod(m2[i][j], NULL);
+			result[i][j] = doubletostr(subst);
 		}
 	}
 	return result;
@@ -118,7 +148,8 @@ static char ***submatrix(char ***m, char ***m2, int r, int c)
 
 static char ***multmatrix(char ***m, char ***m2, int r, int c, int c2)
 {
-	char ***result;
+	char 	***result;
+	double	item;
 
 	result = (char ***)malloc(r * sizeof(char **));
 	if (!result)
@@ -130,12 +161,10 @@ static char ***multmatrix(char ***m, char ***m2, int r, int c, int c2)
 			exit(EXIT_FAILURE);
 		for (int j = 0; j < c2; j++)
 		{
-			result[i][j] = (char *)malloc(100 * sizeof(char));
-			if (!result[i][j])
-				exit(EXIT_FAILURE);
-			sprintf(result[i][j], "%.6f", 0.0);
+			item = 0;
 			for (int k = 0; k < c; k++)
-				sprintf(result[i][j], "%.6f", strtod(result[i][j], NULL) + strtod(m[i][k], NULL) * strtod(m2[k][j], NULL));
+				item += strtod(m[i][k], NULL) * strtod(m2[k][j], NULL);
+			result[i][j] = doubletostr(item);
 		}
 	}
 	return result;
@@ -149,14 +178,14 @@ static char *scalarproduct(char ***m, char ***m2, int c)
 	for (int j = 0; j < c; j++)
 		sum += strtod(m[0][j], NULL) * strtod(m2[0][j], NULL);
 	
-	result = (char *)malloc(100 * sizeof(char));
-	sprintf(result, "%.6f", sum);
+	result = doubletostr(sum);
 	return result;
 }
 
 static char ***multescalarmatrix(char ***m, int r, int c, double digit)
 {
-	char ***result;
+	char 	***result;
+	double	product;
 
 	result = (char ***)malloc(r * sizeof(char **));
 	if (!result)
@@ -168,10 +197,8 @@ static char ***multescalarmatrix(char ***m, int r, int c, double digit)
 			exit(EXIT_FAILURE);
 		for (int j = 0; j < c; j++)
 		{
-			result[i][j] = (char *)malloc(100 * sizeof(char));
-			if (!result[i][j])
-				exit(EXIT_FAILURE);
-			sprintf(result[i][j], "%.6f", strtod(m[i][j], NULL) * digit);
+			product = strtod(m[i][j], NULL) * digit;
+			result[i][j] = doubletostr(product);
 		}
 	}
 	return result;
@@ -179,7 +206,8 @@ static char ***multescalarmatrix(char ***m, int r, int c, double digit)
 
 static char ***divescalarmatrix(char ***m, int r, int c, double digit)
 {
-	char ***result;
+	char	***result;
+	double	division;
 
 	result = (char ***)malloc(r * sizeof(char **));
 	if (!result)
@@ -191,114 +219,71 @@ static char ***divescalarmatrix(char ***m, int r, int c, double digit)
 			exit(EXIT_FAILURE);
 		for (int j = 0; j < c; j++)
 		{
-			result[i][j] = (char *)malloc(100 * sizeof(char));
-			if (!result[i][j])
-				exit(EXIT_FAILURE);
-			sprintf(result[i][j], "%.6f", strtod(m[i][j], NULL) / digit);
+			division = strtod(m[i][j], NULL) / digit;
+			result[i][j] = doubletostr(division);
 		}
 	}
 	return result;
 }
 
-// static char ***transposematrix(char ***m, int r, int c)
-// {
-// 	char ***result;
+static char ***invertmatrix(char ***m, int r)
+{
+	char 	***result;
+	double 	**temp;
+	double 	**cofactor;
+	double 	**inverse;
+	double	**aux;
+	double 	determinant;
+	double	cof_determ;
 
-// 	result = (char ***)malloc(c * sizeof(char **));
-// 	if (!result)
-// 		exit(EXIT_FAILURE);
-// 	for (int i = 0; i < c; i++)
-// 	{
-// 		result[i] = (char **)malloc(r * sizeof(char *));
-// 		if (!result[i])
-// 			exit(EXIT_FAILURE);
-// 		for (int j = 0; j < r; j++)
-// 		{
-// 			result[i][j] = (char *)malloc(100 * sizeof(char));
-// 			if (!result[i][j])
-// 				exit(EXIT_FAILURE);
-// 			sprintf(result[i][j], "%.6f", strtod(m[j][i], NULL));
-// 		}
-// 	}
-// 	return result;
-// }
+	temp = creatematrixdouble(r);
+	for (int i = 0; i < r; i++)
+		for (int j = 0; j < r; j++)
+			temp[i][j] = strtod(m[i][j], NULL);
 
-// static char ***invertmatrix(char ***m, int r, double determinant)
-// {
-// 	char ***result;
-// 	char ***adjoint;
-// 	double **temp;
-// 	double **cofactor;
-// 	double **inverse;
+	determinant = calcdeterminant(temp, r);
+	if (determinant == 0)
+		return NULL;
 
-// 	temp = (double **)malloc(r * sizeof(double *));
-// 	if (!temp)
-// 		exit(EXIT_FAILURE);
-// 	for (int i = 0; i < r; i++)
-// 	{
-// 		temp[i] = (double *)malloc(r * sizeof(double));
-// 		if (!temp[i])
-// 			exit(EXIT_FAILURE);
-// 		for (int j = 0; j < r; j++)
-// 			temp[i][j] = strtod(m[i][j], NULL);
-// 	}
+	cofactor = creatematrixdouble(r);
+	for (int i = 0; i < r; i++)
+	{
+		for (int j = 0; j < r; j++)
+		{
+			aux = creatematrixdouble(r - 1);
+			for (int k = 0; k < r; k++)
+				if (k != i)
+					for (int l = 0; l < r; l++)
+						if (l != j)
+							aux[k < i ? k : k - 1][l < j ? l : l - 1] = temp[k][l];
+			cof_determ = calcdeterminant(aux, r - 1);
+			cofactor[i][j] = (i + j) % 2 == 0 ? cof_determ : -cof_determ;
+			freematrixdouble(aux, r - 1);
+		}
+	}
 
-// 	cofactor = (double **)malloc(r * sizeof(double *));
-// 	if (!cofactor)
-// 		exit(EXIT_FAILURE);
-// 	for (int i = 0; i < r; i++)
-// 	{
-// 		cofactor[i] = (double *)malloc(r * sizeof(double));
-// 		if (!cofactor[i])
-// 			exit(EXIT_FAILURE);
-// 	}
+	inverse = creatematrixdouble(r);
+	for (int i = 0; i < r; i++)
+		for (int j = 0; j < r; j++)
+			inverse[i][j] = cofactor[j][i] / determinant;
 
-// 	inverse = (double **)malloc(r * sizeof(double *));
-// 	if (!inverse)
-// 		exit(EXIT_FAILURE);
-// 	for (int i = 0; i < r; i++)
-// 	{
-// 		inverse[i] = (double *)malloc(r * sizeof(double));
-// 		if (!inverse[i])
-// 			exit(EXIT_FAILURE);
-// 	}
+	result = (char ***)malloc(r * sizeof(char **));
+	if (!result)
+		exit(EXIT_FAILURE);
+	for (int i = 0; i < r; i++)
+	{
+		result[i] = (char **)malloc(r * sizeof(char *));
+		if (!result[i])
+			exit(EXIT_FAILURE);
+		for (int j = 0; j < r; j++)
+			result[i][j] = doubletostr(inverse[i][j]);
+	}
 
-// 	adjoint = (char ***)malloc(r * sizeof(char **));
-// 	if (!adjoint)
-// 		exit(EXIT_FAILURE);
-// 	for (int i = 0; i < r; i++)
-// 	{
-// 		adjoint[i] = (char **)malloc(r * sizeof(char *));
-// 		if (!adjoint[i])
-// 			exit(EXIT_FAILURE);
-// 	}
-
-// 	for (int i = 0; i < r; i++)
-// 		for (int j = 0; j < r; j++)
-// 			cofactor[i][j] = ft_power(-1, i + j) * calcdeterminant(m, i);
-
-// 	for (int i = 0; i < r; i++)
-// 		for (int j = 0; j < r; j++)
-// 			inverse[i][j] = cofactor[j][i] / determinant;
-
-// 	result = (char ***)malloc(r * sizeof(char **));
-// 	if (!result)
-// 		exit(EXIT_FAILURE);
-// 	for (int i = 0; i < r; i++)
-// 	{
-// 		result[i] = (char **)malloc(r * sizeof(char *));
-// 		if (!result[i])
-// 			exit(EXIT_FAILURE);
-// 		for (int j = 0; j < r; j++)
-// 		{
-// 			result[i][j] = (char *)malloc(100 * sizeof(char));
-// 			if (!result[i][j])
-// 				exit(EXIT_FAILURE);
-// 			sprintf(result[i][j], "%.6f", inverse[i][j]);
-// 		}
-// 	}
-// 	return result;
-// }
+	freematrixdouble(cofactor, r);
+	freematrixdouble(temp, r);
+	freematrixdouble(inverse, r);
+	return result;
+}
 
 static void print_spaces(int n)
 {
@@ -309,6 +294,12 @@ static void	print_matrix(char ***matrix, int r, int c)
 {
 	size_t maxlen[c];
 	
+	if (r == 1 && c == 1)
+	{
+		printf("%s\n", matrix[0][0]);
+		return;
+	}
+
 	for (int columns = 0; columns < c; columns++)
 		maxlen[columns] = 0;
 	
@@ -443,55 +434,23 @@ static void	free_matrix(char ***matrix, int r, int c)
 	free(matrix);
 }
 
-static char *readdigit(char *str, int i)
-{
-	int		j;
-	char	*digit;
-
-	if (str[i - 2] == ')')
-		--i;	
-	j = i - 2;
-	while (j > 0 && (isdigit(str[j]) || str[j] == '.'))
-		--j;
-	if (str[j] != '+' && str[j] != '-')
-		++j;
-	digit = ft_substr(str, j, i - 1);
-	return digit;
-}
-
-static char *readdigit2(char *str, int i)
-{
-	int		j;
-	char	*digit;
-
-	if (str[i + 1] == '(')
-		++i;
-	j = i + 1;
-	if (str[j] == '+' || str[j] == '-')
-		++j;
-	while (str[j] && (isdigit(str[j]) || str[j] == '.'))
-		++j;
-	digit = ft_substr(str, i + 1, j);
-	return digit;
-}
-
-static bool checkdigit(char *str, int i)
+static bool checkdigitbefore(char *str, int i)
 {
 	int j;
 
-	if (str[i] == ')')
+	if (str[--i] == ')')
 		--i;
 	j = i;
-	while (j > 0 && (isdigit(str[j]) || str[j] == '.'))
+	while (j >= 0 && (isdigit(str[j]) || str[j] == '.'))
 		--j;
 	return (i != j);
 }
 
-static bool checkdigit2(char *str, int i)
+static bool checkdigitafter(char *str, int i)
 {
 	int j;
 
-	if (str[i] == '(')
+	if (str[++i] == '(')
 		++i;
 	if (str[i] == '+' || str[i] == '-')
 		++i;
@@ -501,322 +460,461 @@ static bool checkdigit2(char *str, int i)
 	return (i != j);
 }
 
-int calc_with_matrices(char **str)
+static char *readdigitbefore(char *str, int i, int *j)
 {
-	int	i;
-	int j;
-	int b;
-	int r, r2;
-	int c, c2;
-	char *digit;
-	char ***matrix;
-	char ***matrix2 = NULL;
-	double determinant;
+	char	*digit;
 
-	if (v_calc)
+	if (str[--i] == ')')
+		--i;	
+	*j = i;
+	while (*j >= 0 && (isdigit(str[*j]) || str[*j] == '.'))
+		--(*j);
+	if (*j < 0 || (str[*j] != '+' && str[*j] != '-'))
+		++(*j);
+	digit = ft_substr(str, *j, i + 1);
+	return digit;
+}
+
+static char *readdigitafter(char *str, int i, int *k)
+{
+	char	*digit;
+
+	if (str[i + 1] == '(')
+		++i;
+	*k = i + 1;
+	if (str[*k] == '+' || str[*k] == '-')
+		++(*k);
+	while (str[*k] && (isdigit(str[*k]) || str[*k] == '.'))
+		++(*k);
+	digit = ft_substr(str, i, *k);
+	return digit;
+}
+
+static char *matrixtostr(char ***result, int r, int c)
+{
+	int 	length;
+	char	*aux;
+
+	length = 0;
+	for (int i = 0; i < r; ++i)
 	{
-		printf("********************\n");
-		printf("*     Matrices     *\n");
-		printf("********************\n");
+		++length;
+		for (int j = 0; j < c; ++j)
+		{
+			length += strlen(result[i][j]);
+			++length;
+		}
+		++length;
+	}
+	++length;
+
+	aux = (char *)calloc(length + 1, sizeof(char));
+	if (!aux)
+		exit(EXIT_FAILURE);
+
+	aux[0] = '[';
+	for (int i = 0; i < r; ++i)
+	{
+		strcat(aux, "[");
+		for(int j = 0; j < c; ++j)
+		{
+			strcat(aux, result[i][j]);
+			if (j < c - 1)
+				strcat(aux, ",");
+			else
+				strcat(aux,"]");
+		}
+		if (i < r - 1)
+			strcat(aux, ";");
+		else
+			strcat(aux, "]");
+	}
+	free_matrix(result, r, c);
+	return aux;
+}
+
+static int	findoperation(int c, char *s)
+{
+	char *pos;
+	char *pos2;
+
+	switch (c)
+	{
+		case 0:
+			pos = strchr(s, '/');
+			break;
+		case 1:
+			pos = strchr(s, '^');
+			break;
+		case 2:
+			pos = strchr(s, '*');
+			pos2 = strchr(s, '#');
+			if (!pos || (pos2 && pos2 < pos))
+				pos = pos2;
+			break;
+		case 3:
+			pos = strchr(s + 1, '+');
+			pos2 = strchr(s + 1, '-');
+			if (!pos || (pos2 && pos2 < pos))
+				pos = pos2;
+			break;
 	}
 
-	i = strchr(*str, '[') - *str;
-	r = fixRows(*str+i);
-	c = fixColumns(*str+i);
-	matrix = create_matrix(*str+i, r, c);
+	if (!pos)
+		return (-1);
+	return (pos - s);
+}
+
+static char *matrixcalc(char *str, int *error)
+{
+	int		i;
+	int		j;
+	int		b;
+	int		r, r2;
+	int 	c, c2;
+	char	*digit;
+	char	*aux;
+	char	***matrix;
+	char	***matrix2 = NULL;
+	char	***result = NULL;
+
+	i = strchr(str, '[') - str;
+	j = i;
+
+	while (str[j])
+	{
+		if (str[j] == ']' && str[j + 1] == ']')
+			break;
+		++j;		
+	}
+	++j;
+	r = fixRows(str+i);
+	c = fixColumns(str+i);
+	matrix = create_matrix(str+i, r, c);
 
 	if (i > 0)
 	{
-		if ((*str)[i - 2] == ']')
+		if (str[i - 2] == ']')
 		{
-			r2 = fixRows(*str);
-			c2 = fixColumns(*str);
-			matrix2 = create_matrix(*str, r2, c2);
+			r2 = fixRows(str);
+			c2 = fixColumns(str);
+			matrix2 = create_matrix(str, r2, c2);
 		}
 
-		if ((*str)[i - 1] == '*')
+		if (str[i - 1] == '*')
 		{
-			if (checkdigit(*str, i - 2))
+			if (checkdigitbefore(str, i - 1))
 			{
-				digit = readdigit(*str, i);
-				printf("Multiplicación de %s por :\n", digit);
-				print_matrix(matrix, r, c);
-
-				char ***result;
+				digit = readdigitbefore(str, i - 1, &j);
 				result = multescalarmatrix(matrix, r, c, strtod(digit, NULL));
-				printf("Resultado:\n");
-				print_matrix(result, r, c);
-				free_matrix(result, r, c);
+				aux = matrixtostr(result, r, c);
 				free(digit);
+				free_matrix(matrix, r, c);
+				return aux;
 			}
-			else if (matrix2 && r == 1 && r2 == 1 && c == c2)
+			if (matrix2 && r == 1 && r2 == 1 && c == c2)
 			{
-				printf("Producto escalar de :\n");
-				print_matrix(matrix2, r2, c2);
-				printf(" por :\n");
-				print_matrix(matrix, r, c);
-
-				char *result;
-				result = scalarproduct(matrix2, matrix, c);
-				printf("Resultado: %s\n", result);
-				free(result);
+				aux = scalarproduct(matrix2, matrix, c);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				return aux;
 			}
-			else
-				printf("Operación no válida\n");
+			free_matrix(matrix, r, c);
+			*error = 1;
+			return NULL;
 		}
-		else if ((*str)[i - 1] == '/')
+
+		if (str[i - 1] == '/')
 		{
-			if (checkdigit(*str, i - 2))
+			if (r != c)
 			{
-				digit = readdigit(*str, i);
-				printf("División de %s por :\n", digit);
-				print_matrix(matrix, r, c);
-
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				*error = 2;
+				return NULL;
+			}
+			
+			char ***inverse;
+			inverse = invertmatrix(matrix, r);
+			if (!inverse)
+			{
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				*error = 3;
+				return NULL;
+			}
+			
+			printf("Inversa:\n"); print_matrix(inverse, r, c);
+	
+			if (checkdigitbefore(str, i - 1))
+			{
+				digit = readdigitbefore(str, i - 1, &j);
 				char ***result;
-				result = divescalarmatrix(matrix, r, c, strtod(digit, NULL));
-				printf("Resultado:\n");
-				print_matrix(result, r, c);
-				free_matrix(result, r, c);
+				result = multescalarmatrix(inverse, r, c, strtod(digit, NULL));
+				aux = matrixtostr(result, r, c);
 				free(digit);
+				free_matrix(matrix, r, c);
+				free_matrix(inverse, r, c);
+				return aux;
 			}
-			else if (matrix2)
-			{
-				if (r != c)
-				{
-					printf("La matriz no es cuadrada\n");
-					return 1;
-				}
-				determinant = calcdeterminant(matrix, r);
-				if (determinant == 0)
-				{
-					printf("La matriz no es invertible\n");
-					return 1;
-				}
-				printf("División de :\n");
-				print_matrix(matrix2, r2, c2);
-				printf(" por :\n");
-				print_matrix(matrix, r, c);
-				// char ***result;
-				// result = invertmatrix(matrix, r, determinant);
-				// printf("Resultado:\n");
-				// print_matrix(result, r, c);
-				// free_matrix(result, r, c);
-			}
-			else
-				printf("Operación no válida\n");
+			result = multmatrix(matrix2, inverse, r2, c2, c);
+			aux = matrixtostr(result, r, c);
+			free_matrix(inverse, r, c);
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			return aux;
 		}
-		else if ((*str)[i - 1] == '#')
+
+		if (str[i - 1] == '#')
 		{
 			if (matrix2 && c2 == r)
 			{
-				printf("Multiplicación de:\n");
-				print_matrix(matrix2, r2, c2);
-				printf(" por :\n");
-				print_matrix(matrix, r, c);
-
-				char ***result;
 				result = multmatrix(matrix2, matrix, r2, c2, c);
-				printf("Resultado:\n");
-				print_matrix(result, r2, c);
-				free_matrix(result, r2, c);
+				aux = matrixtostr(result, r2, c);
+				free_matrix(matrix2, r2, c2);
+				free_matrix(matrix, r, c);
+				return aux;
 			}
-			else
-				printf("Operación no válida\n");;
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
 		}
-		else if ((*str)[i - 1] == '+')
+		if (str[i - 1] == '+')
 		{
 			if (matrix2 && r == r2 && c == c2)
 			{
-				printf("Suma de :\n");
-				print_matrix(matrix2, r2, c2);
-				printf(" y :\n");
-				print_matrix(matrix, r, c);
-
-				char ***result;
 				result = addmatrix(matrix, matrix2, r, c);
-				printf("Resultado:\n");
-				print_matrix(result, r, c);
-				free_matrix(result, r, c);
+				aux = matrixtostr(result, r, c);
+				free_matrix(matrix2, r2, c2);
+				free_matrix(matrix, r, c);
+				return aux;
 			}
-			else
-				printf("Operación no válida\n");
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
 		}
-		else if ((*str)[i - 1] == '-')
+		if (str[i - 1] == '-')
 		{
 			if (matrix2 && r == r2 && c == c2)
 			{
-				printf("Resta de :\n");
-				print_matrix(matrix2, r2, c2);
-				printf(" y :\n");
-				print_matrix(matrix, r, c);
-				
-				char ***result;
 				result = submatrix(matrix2, matrix, r, c);
-				printf("Resultado:\n");
-				print_matrix(result, r, c);
-				free_matrix(result, r, c);
+				aux = matrixtostr(result, r, c);
+				free_matrix(matrix2, r2, c2);
+				free_matrix(matrix, r, c);
+				return aux;
 			}
-			else
-				printf("Operación no válida\n");
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
 		}
-		else
-			print_matrix(matrix, r, c);
 	}
 	else
 	{
 	 	b  = 1;
 		j = i + 1;
-		while ((*str)[j] && b != 0)
+		while (str[j] && b != 0)
 		{
-			b = b + ((*str)[j] == '[') - ((*str)[j] == ']');
+			b = b + (str[j] == '[') - (str[j] == ']');
 			++j;
 		}
 
-		if ((*str)[j] && (*str)[j + 1] == '[')
+		if (str[j] && str[j + 1] == '[')
 		{
-			r2 = fixRows(*str + j + 1);
-			c2 = fixColumns(*str + j + 1);
-			matrix2 = create_matrix(*str + j + 1, r2, c2);
+			r2 = fixRows(str + j + 1);
+			c2 = fixColumns(str + j + 1);
+			matrix2 = create_matrix(str + j + 1, r2, c2);
 		}
 
-		if ((*str)[j] == '*')
+		if (str[j] == '*')
 		{
-			if (checkdigit2(*str, j + 1))
+			if (checkdigitafter(str, j))
 			{
-				digit = readdigit2(*str, j);
-				printf("Multiplicación de :\n");
-				print_matrix(matrix, r, c);
-				printf(" por %s\n", digit);
-
-				char ***result;
+				digit = readdigitafter(str, j + 1, &i);
+				printf("digit = %s\n", digit);
 				result = multescalarmatrix(matrix, r, c, strtod(digit, NULL));
-				printf("Resultado:\n");
-				print_matrix(result, r, c);
-				free_matrix(result, r, c);
+				aux = matrixtostr(result, r, c);
 				free(digit);
+				free_matrix(matrix, r, c);
+				return aux;
 			}
-			else if (matrix2 && r == 1 && r2 == 1)
+			if (matrix2 && r == 1 && r2 == 1)
 			{
-				printf("Producto escalar de :\n");
-				print_matrix(matrix, r, c);
-				printf("por :\n");
-				print_matrix(matrix2, r2, c2);
-
-				char *result;
-				result = scalarproduct(matrix, matrix2, c);
-				printf("Resultado: %s\n", result);
-				free(result);
+				aux = scalarproduct(matrix, matrix2, c);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				return aux;
 			}
-			else
-				printf("Operación no válida\n");
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
 		}
-		else if ((*str)[j] == '/')
+		if (str[j] == '/')
 		{
-			if (checkdigit2(*str, j + 1))
+			if (checkdigitafter(str, j))
 			{
-				printf("División de :\n");
-				print_matrix(matrix, r, c);
-				digit = readdigit2(*str, j);
-				printf(" por %s\n", digit);
-
-				char ***result;
+				digit = readdigitafter(str, j + 1, &i);
 				result = divescalarmatrix(matrix, r, c, strtod(digit, NULL));
-				printf("Resultado:\n");
-				print_matrix(result, r, c);
-				free_matrix(result, r, c);
+				aux = matrixtostr(result, r, c);
 				free(digit);
+				free_matrix(matrix, r, c);
+				return aux;
 			}
-			else if (matrix2)
+			
+			if (r2 != c2)
 			{
-				if (r2 != c2)
-				{
-					printf("La matriz no es cuadrada\n");
-					return 1;
-				}
-				determinant = calcdeterminant(matrix2, r2);
-				if (determinant == 0)
-				{
-					printf("La matriz no es invertible\n");
-					return 1;
-				}
-				printf("División de :\n");
-				print_matrix(matrix, r, c);
-				printf(" por :\n");
-				print_matrix(matrix2, r2, c2);
-
-				// char ***inverse;
-				// inverse = invertmatrix(matrix2, r2, determinant);
-				// printf("Inversa:\n");
-				// print_matrix(inverse, r2, c2);
-				// char ***result;
-				// result = multmatrix(matrix, inverse, r, c, r2);
-				// printf("Resultado:\n");
-				// print_matrix(result, r, c);
-				// free_matrix(inverse, r, c);
-				// free_matrix(result, r2, c2);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				*error = 2;
+				return NULL;
 			}
-			else
-				printf("Operación no válida\n");
-		} 
-		else if ((*str)[j] == '#')
+			char ***inverse;
+			inverse = invertmatrix(matrix2, r2);
+			if (!inverse)
+			{
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				*error = 3;
+				return NULL;
+			}
+			result = multmatrix(matrix, inverse, r, c, r2);
+			aux = matrixtostr(result, r2, c2);
+			free_matrix(inverse, r2, c2);
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			return aux;
+		}
+
+		if (str[j] == '#')
 		{
 			if (matrix2 && c == r2)
 			{
-				printf("Multiplicación de :\n");
-				print_matrix(matrix, r, c);
-				printf(" por :\n");
-				print_matrix(matrix2, r2, c2);
-
 				char ***result;
 				result = multmatrix(matrix, matrix2, r, c, c2);
-				printf("Resultado:\n");
-				print_matrix(result, r, c2);
-				free_matrix(result, r, c2);
+				aux = matrixtostr(result, r, c2);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				return aux;
 			}
-			else
-				printf("Operación no válida\n");
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
 		}
-		else if ((*str)[j] == '+')
+
+		if (str[j] == '+')
 		{
 			if (matrix2 && r == r2 && c == c2)
 			{
-				printf("Suma de :\n");
-				print_matrix(matrix, r, c);
-				printf(" y :\n");
-				print_matrix(matrix2, r2, c2);
-
 				char ***result;
 				result = addmatrix(matrix, matrix2, r, c);
-				printf("Resultado:\n");
-				print_matrix(result, r, c);
-				free_matrix(result, r, c);
+				aux = matrixtostr(result, r, c);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				return aux;
 			}
-			else
-				printf("Operación no válida\n");
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
 		}
-		else if ((*str)[j] == '-')
+		
+		if (str[j] == '-')
 		{
 			if (matrix2 && r == r2 && c == c2)
 			{
-				printf("Resta de :\n");
-				print_matrix(matrix, r, c);
-				printf(" y :\n");
-				print_matrix(matrix2, r2, c2);
-
 				char ***result;
 				result = submatrix(matrix, matrix2, r, c);
-				printf("Resultado:\n");
-				print_matrix(result, r, c);
-				free_matrix(result, r, c);
+				aux = matrixtostr(result, r, c);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				return aux;
 			}
-			else
-				printf("Operación no válida\n");
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
 		}
-		else
-			print_matrix(matrix, r, c);
 	}
-	
 	free_matrix(matrix, r, c);
 	free_matrix(matrix2, r2, c2);
-	return 1;
+	*error = 1;
+	return NULL;
+}
+
+int calc_with_matrices(char **str, int mode)
+{
+	int		error = 0;
+	int		i;
+	int		j;
+	int		k;
+	char	*result;
+	char	*aux;
+	char	*newstr;
+	int		op;
+
+	op = 0;
+	while (op < 4)
+	{
+		i = findoperation(op, *str);
+		if ( i == -1)
+			++op;
+		else
+		{
+			if ((*str)[i + 1] == '[')
+				k = strstr(*str+i, "]]") - *str + 2;
+			else
+				free(readdigitafter(*str, i, &k));
+			if ((*str)[i - 1] == ']')
+			{
+				j = i;
+				while ((*str)[j] != '[' && (*str)[j - 1] != '[')
+					--j;
+				j -= 2;
+			}
+			else
+				free(readdigitbefore(*str, i, &j));
+			aux = ft_substr(*str, j, k);
+			printf("aux = %s\n", aux);
+			result = matrixcalc(aux, &error);
+			printf("result = %s\n", result);
+			if (error)
+			{
+				free(aux);
+				free(result);
+				break;
+			}
+			newstr = (char *)calloc((strlen(*str) + 1), sizeof(char));
+			if (!newstr)
+				exit(EXIT_FAILURE);
+			strncpy(newstr, *str, j);
+			strcat(newstr, result);
+			if (k < (int)strlen(*str))
+				strcat(newstr, *str + k);
+			free(*str);
+			free(aux);
+			free(result);
+			*str = newstr;
+			printf(" *str  = %s\n", *str);
+		}
+	}
+	if (error == 1)
+		return printf_error("Operation is not valid", NULL, -1);
+	if (error == 2)
+		return printf_error("The matrix is not square\n", NULL, -1);
+	if (error == 3)
+		return printf_error("The matrix cannot be inverted", NULL, -1);
+	if (mode)
+	{
+		char ***response;
+		i = fixRows(*str);
+		j = fixColumns(*str);
+		response = create_matrix(*str, i, j);
+		print_matrix(response, i, j);
+		free_matrix(response, i, j);
+	}
+	return 0;
 }

@@ -237,7 +237,7 @@ static char *search_content_in_functions(char *var, t_token **list)
 	return NULL;
 }
 
-int	compute(char **s, t_token **list, char *token)
+int	compute(char **s, t_token **list, char *token, int mode)
 {
 	int 	i;
 	int		j;
@@ -301,8 +301,8 @@ int	compute(char **s, t_token **list, char *token)
 			if (cvar)
 			{
 				if (strchr(cvar, '('))
-					compute(&cvar, list, token);
-				calc(&cvar);
+					compute(&cvar, list, token, mode);
+				calc(&cvar, mode);
 				change_content(s, j, k, cvar);
 				i = 0;
 				free(cvar);
@@ -321,5 +321,5 @@ int	compute(char **s, t_token **list, char *token)
 			free(var);
 		}
 	}
-	return calc(s);
+	return calc(s, mode);
 }

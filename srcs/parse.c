@@ -220,7 +220,7 @@ int parse(char **input, t_token **token_list)
 
 	if (strchr(*input, '=') == *input || !strchr(*input, '='))
 	{
-		printf_error("Bad syntax", NULL, -1);
+		printf_error("Equal sign not found", NULL, -1);
 		return 0;	
 	}
 
@@ -239,7 +239,7 @@ int parse(char **input, t_token **token_list)
 	if (!strcmp(content, "?"))
 	{
 		if (!syntax_error_content(token, NULL) &&
-			compute(&token, token_list, NULL) == 0)
+			compute(&token, token_list, NULL, 1) == 0 && !strchr(token, '['))
 				printf("   %s\n", token);
 	}
 	else if (!syntax_error_token(token) &&
@@ -248,11 +248,12 @@ int parse(char **input, t_token **token_list)
 	{
 		cpytoken = ft_substr(token, 0, strlen(token));			
 		response = ft_substr(content, 0, strlen(content));
-		if (compute(&response, token_list, cpytoken) == 0)
+		if (compute(&response, token_list, cpytoken, 1) == 0)
 		{
 			add_token_to_list(token_list, token, content);
-			printf("   %s\n", response);
 			ft_add_history(cpytoken, content, response);
+			if (!strchr(response, '['))
+				printf("   %s\n", response);
 		}
 		free(response);
 		free(cpytoken);

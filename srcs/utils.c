@@ -12,6 +12,30 @@
 
 #include "computor.h"
 
+bool isinteger(double num)
+{
+	int part_int;
+
+	part_int = (int)num;
+	return (num - part_int) == 0.0;
+}
+
+char	*doubletostr(double d)
+{
+	char *aux;
+
+	aux = malloc(100);
+	if (!aux)
+		exit(EXIT_FAILURE);
+
+	if (isinteger(d))
+		sprintf(aux,"%0.0f", d);
+	else
+		sprintf(aux, "%.2f", d);
+
+	return aux;
+}
+
 bool	bad_letters(char *s)
 {
 	int		i;
@@ -239,7 +263,7 @@ void	token_type(t_token **list)
 		else
 		{
 			content_temp = ft_substr(ptr->content, 0, strlen(ptr->content));
-			if (compute(&content_temp, list, NULL) != 0)
+			if (compute(&content_temp, list, NULL, 0) != 0)
 			{
 				free(content_temp);
 				return;
