@@ -508,6 +508,12 @@ static int detectbrackets(char **str, int mode)
 					}
 
 					free(substr);
+					if (strchr(*str, '['))
+					{
+						(*str)[start - 1] = ' ';
+						(*str)[i] = ' ';
+						remove_spaces(*str);
+					}
 					if (v_calc) printf("- BRACKET: %s%s%s\n", CYAN, *str, RESET);
 				}
 				++i;

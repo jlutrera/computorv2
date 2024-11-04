@@ -270,7 +270,7 @@ bool	syntax_error_content(char *content, char *token)
 		
 		else if (content[i] == '(')
 		{
-			if (!strchr("0123456789-+(", content[i+1]) && !isalpha(content[i+1]))
+			if (!strchr("0123456789-+([", content[i+1]) && !isalpha(content[i+1]))
 				return printf_error("Bad syntax", content, i+1);
 		}
 		
@@ -293,7 +293,7 @@ bool	syntax_error_content(char *content, char *token)
 		{
 			if ( i < last && strchr("!%", content[i+1]))
 				return printf_error("Operation can't be performed", content, i+1);
-			if ( i < last && !strchr("*/+-^#", content[i+1]))
+			if ( i < last && !strchr("*/+-^#)", content[i+1]))
 				return printf_error("Bad syntax", content, i+1);
 		}
 

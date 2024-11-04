@@ -469,8 +469,11 @@ static char *readdigitbefore(char *str, int i, int *j)
 	*j = i;
 	while (*j >= 0 && (isdigit(str[*j]) || str[*j] == '.'))
 		--(*j);
-	if (*j < 0 || (str[*j] != '+' && str[*j] != '-'))
-		++(*j);
+		
+	if (*j > 1 && (str[*j] == '+' || str[*j] == '-') && str[*j - 1] == '(')
+		*j -= 1;
+	else if (*j != 0)
+		++(*j); 
 	digit = ft_substr(str, *j, i + 1);
 	return digit;
 }
@@ -554,7 +557,11 @@ static int	findoperation(int c, char *s)
 			break;
 		case 3:
 			pos = strchr(s + 1, '+');
+			if (pos && (s[pos - s - 1] == '[' || s[pos - s - 1] == ','))
+				pos = NULL;
 			pos2 = strchr(s + 1, '-');
+			if (pos2 && (s[pos2 - s - 1] == '[' || s[pos2 - s - 1] == ','))
+				pos2 = NULL;
 			if (!pos || (pos2 && pos2 < pos))
 				pos = pos2;
 			break;
@@ -583,11 +590,10 @@ static char *matrixcalc(char *str, int *error)
 
 	while (str[j])
 	{
-		if (str[j] == ']' && str[j + 1] == ']')
+		if (str[j] == ']' && str[j - 1] == ']')
 			break;
 		++j;		
 	}
-	++j;
 	r = fixRows(str+i);
 	c = fixColumns(str+i);
 	matrix = create_matrix(str+i, r, c);
@@ -733,7 +739,6 @@ static char *matrixcalc(char *str, int *error)
 			if (checkdigitafter(str, j))
 			{
 				digit = readdigitafter(str, j + 1, &i);
-				printf("digit = %s\n", digit);
 				result = multescalarmatrix(matrix, r, c, strtod(digit, NULL));
 				aux = matrixtostr(result, r, c);
 				free(digit);
@@ -857,7 +862,7 @@ int calc_with_matrices(char **str, int mode)
 	int		op;
 
 	op = 0;
-	while (op < 4)
+	while (op < 4 && strchr(*str, '['))
 	{
 		i = findoperation(op, *str);
 		if ( i == -1)
@@ -871,23 +876,31 @@ int calc_with_matrices(char **str, int mode)
 			if ((*str)[i - 1] == ']')
 			{
 				j = i;
-				while ((*str)[j] != '[' && (*str)[j - 1] != '[')
+				while ((*str)[j] != '[' || (*str)[j - 1] != '[')
 					--j;
-				j -= 2;
+				j -= 1;
 			}
 			else
 				free(readdigitbefore(*str, i, &j));
 			aux = ft_substr(*str, j, k);
-			printf("aux = %s\n", aux);
 			result = matrixcalc(aux, &error);
-			printf("result = %s\n", result);
+			if (!strchr(result, ','))
+			{
+				result[0] = ' ';
+				result[1] = ' ';
+				result[strlen(result) - 1] = ' ';
+				result[strlen(result) - 2] = ' ';
+				result = ft_trim(result);
+			}
+			
+			if (v_calc) printf("   Result = %s%s%s\n", GREEN, result, RESET);
 			if (error)
 			{
 				free(aux);
 				free(result);
 				break;
 			}
-			newstr = (char *)calloc((strlen(*str) + 1), sizeof(char));
+			newstr = (char *)calloc((strlen(*str) - k + j + strlen(result) + 1), sizeof(char));
 			if (!newstr)
 				exit(EXIT_FAILURE);
 			strncpy(newstr, *str, j);
@@ -898,7 +911,6 @@ int calc_with_matrices(char **str, int mode)
 			free(aux);
 			free(result);
 			*str = newstr;
-			printf(" *str  = %s\n", *str);
 		}
 	}
 	if (error == 1)
@@ -907,7 +919,7 @@ int calc_with_matrices(char **str, int mode)
 		return printf_error("The matrix is not square\n", NULL, -1);
 	if (error == 3)
 		return printf_error("The matrix cannot be inverted", NULL, -1);
-	if (mode)
+	if (mode && strchr(*str, '['))
 	{
 		char ***response;
 		i = fixRows(*str);
