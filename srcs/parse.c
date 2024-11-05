@@ -114,7 +114,12 @@ static bool execute_command(char *newinput, t_token **token_list)
 
 	if (types(newinput, token_list))
 		return 1;
-
+	
+	if (!strcmp(newinput, "clear"))
+	{
+		system("clear");
+		return 1;
+	}
 	return 0;
 }
 
@@ -182,7 +187,6 @@ static bool variable_not_found(char *token, char *content, t_token *token_list)
 							break;
 						ptr = ptr->next;
 					}
-					printf("*****  variable = %c     aux = %s \n", variable, aux);
 					if (!ptr)
 					{
 						printf("%sError%s: Variable %s%s%s not found\n", RED, RESET, RED, aux, RESET);

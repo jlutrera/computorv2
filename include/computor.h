@@ -69,8 +69,8 @@ void	calc_with_variables(char **str, int mode);
 int 	complex_calc(char **str, int mode);
 // calc.c
 int		calc(char **str, int mode);
-int 	transformexpression(char **str, int mode);
 int 	doingproducts(char **strl, char *substr, int mode);
+int 	transformexpression(char **str, int mode);
 // complex.c
 int		complex_calc(char **str, int mode);
 // compute.c
@@ -78,10 +78,10 @@ int 	compute(char **content, t_token **list, char *token, int mode);
 // delete.c
 bool	delete(char *content, t_token **list);
 // equations.c
+void	solve_cubic(double *reduced, char letter);
 void	solve_equality(double *reduced, char letter);
 void	solve_linear(double *reduced, char letter);
 void	solve_quadratic(double *reduced, char letter);
-void	solve_cubic(double *reduced, char letter);
 // help.c
 bool	help(char *newinput);
 // list.c

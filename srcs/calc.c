@@ -12,9 +12,6 @@
 
 #include "computor.h"
 
-
-
-
 static char	*makeoperation(char c, double a, double b, int *e)
 {
 	double	result;
@@ -510,6 +507,9 @@ static int detectbrackets(char **str, int mode)
 					free(substr);
 					if (strchr(*str, '['))
 					{
+						printf("%c",(*str)[start - 1]);
+						i = strchr(*str, ')') - *str;
+						printf("   %c\n",(*str)[i]);
 						(*str)[start - 1] = ' ';
 						(*str)[i] = ' ';
 						remove_spaces(*str);
@@ -707,11 +707,11 @@ int	calc(char **str, int mode)
 	if (isnegative)
 	    (*str)[1] = '+';
 
-	e = detectbrackets(str, mode);
+	e = detectbrackets(str, 0);
 	if (!e)
 		resolvedoblesigne(str);
 
-	if (!onlynumbers(*str))
+	if (!onlynumbers(*str) && !strchr(*str, '['))
 	{
 		if (v_calc) printf("\nREDUCING : %s%s%s\n", CYAN, *str, RESET);
 

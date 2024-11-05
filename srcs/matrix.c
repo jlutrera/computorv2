@@ -650,8 +650,12 @@ static char *matrixcalc(char *str, int *error)
 				return NULL;
 			}
 			
-			printf("Inversa:\n"); print_matrix(inverse, r, c);
-	
+			if (v_calc) 
+			{
+				printf("Inversa:\n"); 
+				print_matrix(inverse, r, c);
+			}
+			
 			if (checkdigitbefore(str, i - 1))
 			{
 				digit = readdigitbefore(str, i - 1, &j);
@@ -850,6 +854,20 @@ static char *matrixcalc(char *str, int *error)
 	return NULL;
 }
 
+static int onlydigits(char *s)
+{
+	int i;
+
+	i = 0;
+	while (s[i])
+	{
+		if (isalpha(s[i]))
+			return 0;
+		++i;
+	}
+	return 1;
+}
+
 int calc_with_matrices(char **str, int mode)
 {
 	int		error = 0;
@@ -862,7 +880,7 @@ int calc_with_matrices(char **str, int mode)
 	int		op;
 
 	op = 0;
-	while (op < 4 && strchr(*str, '['))
+	while (op < 4 && strchr(*str, '[') && onlydigits(*str))
 	{
 		i = findoperation(op, *str);
 		if ( i == -1)
@@ -884,6 +902,12 @@ int calc_with_matrices(char **str, int mode)
 				free(readdigitbefore(*str, i, &j));
 			aux = ft_substr(*str, j, k);
 			result = matrixcalc(aux, &error);
+			if (error)
+			{
+				free(aux);
+				free(result);
+				break;
+			}
 			if (!strchr(result, ','))
 			{
 				result[0] = ' ';
@@ -894,12 +918,7 @@ int calc_with_matrices(char **str, int mode)
 			}
 			
 			if (v_calc) printf("   Result = %s%s%s\n", GREEN, result, RESET);
-			if (error)
-			{
-				free(aux);
-				free(result);
-				break;
-			}
+			
 			newstr = (char *)calloc((strlen(*str) - k + j + strlen(result) + 1), sizeof(char));
 			if (!newstr)
 				exit(EXIT_FAILURE);
@@ -919,7 +938,7 @@ int calc_with_matrices(char **str, int mode)
 		return printf_error("The matrix is not square\n", NULL, -1);
 	if (error == 3)
 		return printf_error("The matrix cannot be inverted", NULL, -1);
-	if (mode && strchr(*str, '['))
+	if (mode && strchr(*str, '[') && onlydigits(*str))
 	{
 		char ***response;
 		i = fixRows(*str);
@@ -928,5 +947,7 @@ int calc_with_matrices(char **str, int mode)
 		print_matrix(response, i, j);
 		free_matrix(response, i, j);
 	}
+	else if (mode && !onlydigits(*str))
+		printf("   %s\n", *str);
 	return 0;
 }

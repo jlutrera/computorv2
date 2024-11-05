@@ -17,7 +17,7 @@ static bool iscommandword(char *token)
 	if (!strcmp(token, "list") || !strcmp(token, "exit")   ||
 		!strcmp(token, "solve")|| !strcmp(token, "delete") ||
 		!strcmp(token, "help") || !strcmp(token, "plot")   ||
-		!strcmp(token, "type"))
+		!strcmp(token, "type") || !strcmp(token, "clear"))
 		return 1;
 
 	return 0;
@@ -220,7 +220,7 @@ bool	syntax_error_content(char *content, char *token)
 			}
 			else
 			{
-				if (i < last && !strchr("+-*/%^!()", content[i+1]))
+				if (i < last && !strchr("+-*/%^!()#", content[i+1]))
 					return printf_error("Bad syntax", content, i+1);
 				if (token && ((strlen(token) == 1 && content[i] == token[0] && content[i+1] != '(') ||
 					(strlen(token) > 1 && content[i] == token[0] && content[i+1] == token[1])))
@@ -299,7 +299,9 @@ bool	syntax_error_content(char *content, char *token)
 
 		else if (content[i] == '#')
 		{
-			if (i == last || content[i+1] != '[')
+			if (i == last)
+				return printf_error("A matrix after is needed", content, i);
+			if (content[i+1] != '[' && !isalpha(content[i+1]))
 				return printf_error("Operator \"**\" can only be performed with matrixes", NULL, i);
 		}
 

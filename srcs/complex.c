@@ -97,7 +97,7 @@ static void complex_bracket(char **str, int *i)
 		++k;
 	aux = ft_substr(*str, *i + 3, k);
 	aux2 = ft_substr(*str, j + 1, *i + 1);
-	if (v_calc) printf("  Complex bracket : %s%s%s elevado a %s%s%s\n", CYAN, aux2, RESET, CYAN, aux, RESET);
+	if (v_calc) printf("   Complex bracket : %s%s%s elevado a %s%s%s\n", CYAN, aux2, RESET, CYAN, aux, RESET);
 	free(aux);
 	free(aux2);
 }
@@ -133,7 +133,7 @@ int complex_calc(char **str, int mode)
 		if ((*str)[i + 1] == '*')
 			complex_product(str, &i);
 		remove_spaces(*str);
-		printf("  Complex result : %s%s%s\n", CYAN, *str, RESET);
+		if (v_calc) printf("   Complex result : %s%s%s\n", CYAN, *str, RESET);
 		i = strchr(*str + i + 1, 'i') - (*str);
 	}
 	doingproducts(str, *str, mode);
