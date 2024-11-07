@@ -507,9 +507,7 @@ static int detectbrackets(char **str, int mode)
 					free(substr);
 					if (strchr(*str, '['))
 					{
-						printf("%c",(*str)[start - 1]);
 						i = strchr(*str, ')') - *str;
-						printf("   %c\n",(*str)[i]);
 						(*str)[start - 1] = ' ';
 						(*str)[i] = ' ';
 						remove_spaces(*str);

@@ -76,7 +76,10 @@ static double	calcdeterminant(double **m, int l)
 		}
 		// Si el pivote es cero, el determinante es cero
 		if (matrix[max_index][k] == 0)
+		{
+			freematrixdouble(matrix, l);
 			return 0;
+		}
 		// Intercambio de filas si es necesario
 		if (max_index != k) 
 		{
@@ -243,8 +246,10 @@ static char ***invertmatrix(char ***m, int r)
 
 	determinant = calcdeterminant(temp, r);
 	if (determinant == 0)
+	{
+		freematrixdouble(temp, r);
 		return NULL;
-
+	}
 	cofactor = creatematrixdouble(r);
 	for (int i = 0; i < r; i++)
 	{
@@ -948,6 +953,17 @@ int calc_with_matrices(char **str, int mode)
 		free_matrix(response, i, j);
 	}
 	else if (mode && !onlydigits(*str))
-		printf("   %s\n", *str);
+	{
+		i = -1;
+		printf("   ");
+		while ((*str)[++i])
+		{
+			if ((*str)[i] == '#')
+				printf("**");
+			else
+				printf("%c", (*str)[i]);
+		}
+		printf("\n");
+	}
 	return 0;
 }

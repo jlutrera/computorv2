@@ -118,6 +118,7 @@ static bool execute_command(char *newinput, t_token **token_list)
 	if (!strcmp(newinput, "clear"))
 	{
 		system("clear");
+		splash();
 		return 1;
 	}
 	return 0;
