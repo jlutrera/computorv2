@@ -372,6 +372,19 @@ static int	fixColumns(char *str)
 	return columns;
 }
 
+static void	free_matrix(char ***matrix, int r, int c)
+{
+	if (matrix == NULL)
+		return;
+	for (int i = 0; i < r; i++)
+	{
+		for (int j = 0; j < c; j++)
+			free(matrix[i][j]);
+		free(matrix[i]);
+	}
+	free(matrix);
+}
+
 static char	***create_matrix(char *str, int r, int c)
 {
 	int i = 0;
@@ -424,19 +437,6 @@ static char	***create_matrix(char *str, int r, int c)
 			break;
 	}
 	return m;
-}
-
-static void	free_matrix(char ***matrix, int r, int c)
-{
-	if (matrix == NULL)
-		return;
-	for (int i = 0; i < r; i++)
-	{
-		for (int j = 0; j < c; j++)
-			free(matrix[i][j]);
-		free(matrix[i]);
-	}
-	free(matrix);
 }
 
 static bool checkdigitbefore(char *str, int i)
@@ -873,7 +873,7 @@ static int onlydigits(char *s)
 	return 1;
 }
 
-int calc_with_matrices(char **str, int mode)
+int calc_with_matrices(char **str)
 {
 	int		error = 0;
 	int		i;
@@ -943,7 +943,7 @@ int calc_with_matrices(char **str, int mode)
 		return printf_error("The matrix is not square\n", NULL, -1);
 	if (error == 3)
 		return printf_error("The matrix cannot be inverted", NULL, -1);
-	if (mode && strchr(*str, '[') && onlydigits(*str))
+	if (v_calc && strchr(*str, '[') && onlydigits(*str))
 	{
 		char ***response;
 		i = fixRows(*str);
@@ -952,7 +952,7 @@ int calc_with_matrices(char **str, int mode)
 		print_matrix(response, i, j);
 		free_matrix(response, i, j);
 	}
-	else if (mode && !onlydigits(*str))
+	else if (v_calc && !onlydigits(*str))
 	{
 		i = -1;
 		printf("   ");

@@ -27,12 +27,13 @@ char	*doubletostr(double d)
 	aux = malloc(100);
 	if (!aux)
 		exit(EXIT_FAILURE);
-
 	if (isinteger(d))
 		sprintf(aux,"%0.0f", d);
 	else
 		sprintf(aux, "%.2f", d);
 
+	if (strcmp(aux, "-0") == 0)
+		strcpy(aux, "0");
 	return aux;
 }
 
@@ -263,7 +264,8 @@ void	token_type(t_token **list)
 		else
 		{
 			content_temp = ft_substr(ptr->content, 0, strlen(ptr->content));
-			if (compute(&content_temp, list, NULL, 0) != 0)
+			
+			if (compute(&content_temp, list, NULL) != 0)
 			{
 				free(content_temp);
 				return;

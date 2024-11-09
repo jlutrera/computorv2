@@ -12,22 +12,6 @@
 
 #include "computor.h"
 
-static bool foundoperation(char *dest)
-{
-	int i;
-
-	i = 0;
-	if (dest[0] == '-' || dest[0] == '+')
-		++i;
-	while (dest[i])
-	{
-		if (strchr("+-*/%^!", dest[i]))
-			return 1;
-		++i;
-	}
-	return 0;
-}
-
 static int change_content(char **s, int j, int i, char *dest)
 {
 	int		len_s;
@@ -75,16 +59,10 @@ static int change_content(char **s, int j, int i, char *dest)
 	if (extra)
 		new_str[j++] = '*';
 
-	if (!(dest[0] == '(' && dest[strlen(dest)-1] == ')') && foundoperation(dest) )
-	{
-		new_str[j++] = '(';
-		strcat(new_str, dest);
-		strcat(new_str, ")");
-		extra += 2;
-	}
-	else
-		strcat(new_str, dest);
-
+	new_str[j++] = '(';
+	strcat(new_str, dest);
+	strcat(new_str, ")");
+	extra += 2;
 	strcat(new_str, *s + i);
 	remove_spaces(new_str);
 	free(*s);
@@ -237,7 +215,7 @@ static char *search_content_in_functions(char *var, t_token **list)
 	return NULL;
 }
 
-int	compute(char **s, t_token **list, char *token, int mode)
+int	compute(char **s, t_token **list, char *token)
 {
 	int 	i;
 	int		j;
@@ -301,8 +279,8 @@ int	compute(char **s, t_token **list, char *token, int mode)
 			if (cvar)
 			{
 				if (strchr(cvar, '('))
-					compute(&cvar, list, token, mode);
-				calc(&cvar, mode);
+					compute(&cvar, list, token);
+				calc(&cvar);
 				change_content(s, j, k, cvar);
 				i = 0;
 				free(cvar);
@@ -321,5 +299,5 @@ int	compute(char **s, t_token **list, char *token, int mode)
 			free(var);
 		}
 	}
-	return calc(s, mode);
+	return calc(s);
 }

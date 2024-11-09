@@ -51,7 +51,7 @@ static int whereistheclosingbracket(char *str, int i)
 	return --i;
 }
 
-void calc_with_variables(char **str, int mode)
+void calc_with_variables(char **str)
 {
 	int 	i;
 	int		j;
@@ -69,7 +69,7 @@ void calc_with_variables(char **str, int mode)
 		if (strchr(newp, '('))
 		{
 			
-			calc_with_variables(&newp, mode);
+			calc_with_variables(&newp);
 			remove_spaces(newp);
 			
 			for (int k = 0; k < (int)strlen(newp); ++k)
@@ -99,5 +99,5 @@ void calc_with_variables(char **str, int mode)
 		}
 	}
 	
-	transformexpression(str, mode);
+	transformexpression(str);
 }

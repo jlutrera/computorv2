@@ -12,28 +12,9 @@
 
 #include "computor.h"
 
-static int draw(char *f)
+static void draw(char *f)
 {
-	printf("Representando la función %s\n", f);
-	return 1;
-}
-
-static char	*get_function(char *content)
-{
-	int	i;
-	int	len;
-
-	i = 5;
-	while (content[i] == ' ')
-		++i;
-	if (content[i] != '\"')
-		return NULL;
-
-	len = strlen(content);
-	while (content[++i] == ' ');
-	if (i == len - 1)
-		return NULL;
-	return ft_substr(content, i, len - 1);
+	printf("Plotting %s%s%s\n", CYAN, f, RESET);
 }
 
 bool	plot(char *input)
@@ -43,35 +24,42 @@ bool	plot(char *input)
 	int		len;
 
 	len = strlen(input);
-	if (len < 4)
+	if (len < 5)
 		return 0;
 	
 	k = ft_substr(input, 0, 4);
-	if (strcmp(k, "plot") || input[5] != ' ')
+	if (strcmp(k, "plot") || input[4] != ' ')
 	{
 		free(k);
 		return 0;
 	}
-	if (len < 6)
+	free(k);
+	k = ft_substr(input, 5, len);
+	remove_spaces(k);
+	len = strlen(k);
+	if (len < 3)
 	{
 		free(k);
 		return printf_error("Function not found", NULL, -1);
 	}
-	if (!strchr(input, '\"'))
+	if (k[0] != '\"')
 	{
 		free(k);
 		return printf_error("Double quotes not found at the beginning.", NULL, -1);
 	}
-	if (input[len - 1] != '\"')
+	if (k[len - 1] != '\"')
 	{
 		free(k);
 		return printf_error("Double quotes not found at the end.", NULL, -1);
 	}
-	function = get_function(input);
+	function = ft_substr(k, 1, len - 1);
 	free(k);
-	if (function != NULL)
-		return draw(function);
-	
+	if (syntax_error_content(function, NULL))
+	{
+		free(function);
+		return 1;
+	}
+	draw(function);
 	free(function);
-	return printf_error("Bad syntax for \"plot\"", NULL, -1);
+	return 1;
 }

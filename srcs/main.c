@@ -43,21 +43,11 @@ int	main(int argc, char **argv)
 	char	*prompt;
 	int		finish;
 
- 	if (argc > 2)
+	(void)argv;
+ 	if (argc > 1)
 	{
 		printf("Too many arguments\n");
 		return (1);
-	}
-	
-	if (argc == 2)
-	{
-		if (!strcmp(argv[1], "-v"))
-			v_calc = true;
-		else
-		{
-			printf("Invalid argument\n");
-			return (1);
-		}
 	}
 
 	init_computor(&token_list, &prompt);

@@ -28,7 +28,7 @@ void	splash(void)
 	printf("\x1b[0m");
 	printf("  If you need, type \"help\"");
 	if (v_calc)
-		printf(" (Visual mode %senabled%s)\n\n", GREEN, RESET);
+		printf(" (Visual mode %sON%s)\n\n", GREEN, RESET);
 	else
-		printf(" (Visual mode %sdisabled%s)\n\n", RED, RESET);
+		printf(" (Visual mode %sOFF%s)\n\n", RED, RESET);
 }

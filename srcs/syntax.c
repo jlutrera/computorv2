@@ -17,8 +17,9 @@ static bool iscommandword(char *token)
 	if (!strcmp(token, "list") || !strcmp(token, "exit")   ||
 		!strcmp(token, "solve")|| !strcmp(token, "delete") ||
 		!strcmp(token, "help") || !strcmp(token, "plot")   ||
-		!strcmp(token, "type") || !strcmp(token, "clear"))
-		return 1;
+		!strcmp(token, "type") || !strcmp(token, "clear")  ||
+		!strcmp(token, "visual"))
+			return 1;
 
 	return 0;
 }
@@ -34,6 +35,16 @@ static int check_matrix_row(char *r, char *token)
 	if (check_brackets(r) || l < 3 || (r[0] != '[' || r[l-1] != ']'))
 		return 0;
 
+	if (r[l-2] == ',')
+	{
+		printf_error("Bad syntax", r, l-2);
+		return -1;
+	}
+	if (r[1] == ',')
+	{
+		printf_error("Bad syntax", r, 1);
+		return -1;
+	}
 	i = 1;
 	c = 0;
 	while (i < l-1)

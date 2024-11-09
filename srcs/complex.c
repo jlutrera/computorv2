@@ -116,7 +116,7 @@ static bool iscomplex(char *str)
 	return true;
 }
 
-int complex_calc(char **str, int mode)
+int complex_calc(char **str)
 {
 	int		i;
 	
@@ -136,6 +136,6 @@ int complex_calc(char **str, int mode)
 		if (v_calc) printf("   Complex result : %s%s%s\n", CYAN, *str, RESET);
 		i = strchr(*str + i + 1, 'i') - (*str);
 	}
-	doingproducts(str, *str, mode);
+	doingproducts(str, *str);
 	return 0;
 }

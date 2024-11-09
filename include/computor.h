@@ -65,16 +65,16 @@ typedef struct s_token
 extern bool	v_calc;
 
 // algebra.c
-void	calc_with_variables(char **str, int mode);
-int 	complex_calc(char **str, int mode);
+void	calc_with_variables(char **str);
+int 	complex_calc(char **str);
 // calc.c
-int		calc(char **str, int mode);
-int 	doingproducts(char **strl, char *substr, int mode);
-int 	transformexpression(char **str, int mode);
+int		calc(char **str);
+int 	doingproducts(char **strl, char *substr);
+int 	transformexpression(char **str);
 // complex.c
-int		complex_calc(char **str, int mode);
+int		complex_calc(char **str);
 // compute.c
-int 	compute(char **content, t_token **list, char *token, int mode);
+int 	compute(char **content, t_token **list, char *token);
 // delete.c
 bool	delete(char *content, t_token **list);
 // equations.c
@@ -104,7 +104,7 @@ double	ft_exp(double x);
 double	ft_deg(double x);
 double	ft_rad(double x);
 // matrix.c
-int 	calc_with_matrices(char **str, int mode);
+int 	calc_with_matrices(char **str);
 // parse.c
 int		parse(char **input, t_token **token_list);
 // plot.c

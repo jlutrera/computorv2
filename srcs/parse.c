@@ -121,6 +121,18 @@ static bool execute_command(char *newinput, t_token **token_list)
 		splash();
 		return 1;
 	}
+	if (!strcmp(newinput, "visual on"))
+	{
+		v_calc = 1;
+		printf("Visual mode %sON%s\n", GREEN, RESET);
+		return 1;
+	}
+	if (!strcmp(newinput, "visual off"))
+	{
+		v_calc = 0;
+		printf("Visual mode %sOFF%s\n", RED, RESET);
+		return 1;
+	}
 	return 0;
 }
 
@@ -244,7 +256,7 @@ int parse(char **input, t_token **token_list)
 	if (!strcmp(content, "?"))
 	{
 		if (!syntax_error_content(token, NULL) &&
-			compute(&token, token_list, NULL, 1) == 0 && !strchr(token, '['))
+			compute(&token, token_list, NULL) == 0 && !strchr(token, '['))
 				printf("   %s\n", token);
 	}
 	else if (!syntax_error_token(token) &&
@@ -253,7 +265,7 @@ int parse(char **input, t_token **token_list)
 	{
 		cpytoken = ft_substr(token, 0, strlen(token));			
 		response = ft_substr(content, 0, strlen(content));
-		if (compute(&response, token_list, cpytoken, 1) == 0)
+		if (compute(&response, token_list, cpytoken) == 0)
 		{
 			add_token_to_list(token_list, token, content);
 			ft_add_history(cpytoken, content, response);

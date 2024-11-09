@@ -358,6 +358,7 @@ static int lookupfunction(char **s)
 					if (isalpha((*s)[i]))
 					{
 						free(aux);
+						if (v_calc) printf("\n");
 						return 1;
 					}
 					++i;
@@ -370,7 +371,7 @@ static int lookupfunction(char **s)
 					result = operatefunction(aux, number, &e);
 					if (!e)
 					{
-						if (v_calc) printf(" = %s%s%s\n", GREEN, result, RESET);
+						if (v_calc) printf(" = %s%s%s", GREEN, result, RESET);
 						if ((*s)[i] == ')')
 							++i;
 						update_result(s, j, i, result);
@@ -379,6 +380,7 @@ static int lookupfunction(char **s)
 					free(result);
 				}
 				free(number);
+				if (v_calc) printf("\n");
 			}
 			free(aux);
 		}
@@ -435,7 +437,7 @@ static bool isanumber(char *s)
 	return false;
 }
 
-static int detectbrackets(char **str, int mode)
+static int detectbrackets(char **str)
 {
 	char 	*substr;
 	int		i;
@@ -484,7 +486,7 @@ static int detectbrackets(char **str, int mode)
 
 					if (v_calc) printf("+ BRACKET: %s%s%s\n", CYAN, substr, RESET);
 				
-					if (detectbrackets(&substr, mode) || lookupfunction(&substr))
+					if (detectbrackets(&substr) || lookupfunction(&substr))
 					{
 						free(substr);
 						return 1;
@@ -492,13 +494,13 @@ static int detectbrackets(char **str, int mode)
 
 					if (!onlynumbers(substr) && !strchr(substr, '(')) 
 					{
-						transformexpression(&substr, mode);
+						transformexpression(&substr);
 						update_result(str, start, i, substr);
 					}
 					else if (onlynumbers(substr))
 					{
 						if (thereareoperations(substr))
-							calc(&substr, mode);
+							calc(&substr);
 						update_result(str, start, i, substr);
 						resolvedoblesigne(str);
 						i = start + strlen(substr);
@@ -561,7 +563,7 @@ static char *newstr(char *substr, int c)
 	return (t);
 }
 
-int doingproducts(char **strl, char *substr, int mode)
+int doingproducts(char **strl, char *substr)
 {
 	char *aux; //solo números
 	char *aux2; //solo variables (letras)
@@ -588,7 +590,7 @@ int doingproducts(char **strl, char *substr, int mode)
 	aux = newstr(substr, 1);
 	aux2 = newstr(substr, 0);
 
-	calc(&aux, mode);
+	calc(&aux);
 	strcpy(*strl, aux);
 	if (strlen(aux) > 0)
 		strcat(*strl, "*");
@@ -599,7 +601,7 @@ int doingproducts(char **strl, char *substr, int mode)
 	return 1;
 }
 
-static void splitter(char *s, char **strn, char **strl, int mode)
+static void splitter(char *s, char **strn, char **strl)
 {
 	int 	i;
 	int		j;
@@ -630,7 +632,7 @@ static void splitter(char *s, char **strn, char **strl, int mode)
 			{
 				if (substr[0] != '-' && substr[0] != '+')
 					strcat(*strl, "+");
-				if (!doingproducts(strl, substr, mode))
+				if (!doingproducts(strl, substr))
 					strcat(*strl, substr);
 			}
 			free(substr);
@@ -656,7 +658,7 @@ static int check_complex_operators(char *str)
 	return 0;
 }
 
-int transformexpression(char **str, int mode)
+int transformexpression(char **str)
 {
 	char 	*strn;
 	char 	*strl;
@@ -669,10 +671,10 @@ int transformexpression(char **str, int mode)
 	if (!strl)
 		exit(EXIT_FAILURE);
 	
-	splitter(*str, &strn, &strl, mode);
-	e = calc(&strn, mode);
+	splitter(*str, &strn, &strl);
+	e = calc(&strn);
 	if (!e)
-		e = complex_calc(&strl, mode);
+		e = complex_calc(&strl);
 	if (!e)
 	{
 		free(*str);
@@ -689,7 +691,7 @@ int transformexpression(char **str, int mode)
 	return e;
 }
 
-int	calc(char **str, int mode)
+int	calc(char **str)
 {
 	int		op;
 	int		i;
@@ -705,7 +707,7 @@ int	calc(char **str, int mode)
 	if (isnegative)
 	    (*str)[1] = '+';
 
-	e = detectbrackets(str, 0);
+	e = detectbrackets(str);
 	if (!e)
 		resolvedoblesigne(str);
 
@@ -716,16 +718,16 @@ int	calc(char **str, int mode)
 		if (strchr(*str, 'i') && check_complex_operators(*str))
 			return 1;
 
-		calc_with_variables(str, mode);
+		calc_with_variables(str);
 		if (onlynumbers(*str) && thereareoperations(*str) && !strchr(*str, '['))
-			calc(str, mode);
+			calc(str);
 
 		return 0;
 	}
 	
 	if (strchr(*str, '['))
 	{
-		e = calc_with_matrices(str, mode);
+		e = calc_with_matrices(str);
 		if (strchr(*str, '['))
 			return e;
 	}
