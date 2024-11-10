@@ -37,6 +37,13 @@
 # define TAYLOR_TERMS 	30
 # define PRECISION		1e-15
 
+# define WIDTH 500
+# define HEIGHT 500
+# define Q_KEY 113
+# define q_KEY 81
+# define AXES_COLOR 0x00FFFFFF // White
+# define FUNCTION_COLOR 0x0000FF00 // Green
+
 # define GREEN 	"\033[0;32m"
 # define YELLOW	"\033[0;33m"
 # define CYAN	"\033[0;36m"
