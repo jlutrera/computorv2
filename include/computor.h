@@ -37,18 +37,35 @@
 # define TAYLOR_TERMS 	30
 # define PRECISION		1e-15
 
-# define WIDTH 500
-# define HEIGHT 500
-# define Q_KEY 113
-# define q_KEY 81
-# define AXES_COLOR 0x00FFFFFF // White
-# define FUNCTION_COLOR 0x0000FF00 // Green
+# define WIDTH			500
+# define HEIGHT			500
 
-# define GREEN 	"\033[0;32m"
-# define YELLOW	"\033[0;33m"
-# define CYAN	"\033[0;36m"
-# define RED	"\033[1;31m"
-# define RESET	"\033[0m"
+// Colours
+# define P_RED   		0xFF0000
+# define P_GREEN 		0x00FF00
+# define P_BLUE  		0x0000FF
+# define P_WHITE 		0xFFFFFF
+# define P_YELLOW		0xFFFF00
+# define P_CYAN 		0x4BB5FF
+
+# define ZOOM_FACTOR 	1.2
+
+// Keycodes
+# define K_UP			0xFF52
+# define K_DOWN			0xFF54
+# define Q_KEY			113
+# define q_KEY			81
+
+// Mouse scroll
+# define MSCROLL_UP		4
+# define MSCROLL_DOWN	5
+
+//Colours for printf
+# define GREEN 			"\033[0;32m"
+# define YELLOW			"\033[0;33m"
+# define CYAN			"\033[0;36m"
+# define RED			"\033[1;31m"
+# define RESET			"\033[0m"
 
 typedef enum	e_token_type
 {
@@ -70,7 +87,7 @@ typedef struct s_token
 
 //Variable global para visualizar las operaciones
 extern bool	v_calc;
-
+extern bool	plotting;
 // algebra.c
 void	calc_with_variables(char **str);
 int 	complex_calc(char **str);

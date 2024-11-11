@@ -225,6 +225,7 @@ int	compute(char **s, t_token **list, char *token)
 	char	*var;
 	char	variable[2];
 
+	plotting = false;
 	variable[0] = '\0';
 	variable[1] = '\0';
 	i = 0;

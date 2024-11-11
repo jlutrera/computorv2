@@ -65,6 +65,7 @@ bool help(char *newinput)
 		"\n6. Plot a function",
 		"   ---------------",
 		"   Syntax: plot \"function\"",
+		"   Note: The function must be a valid mathematical expression and the variable has to be \"x\".",
 		"   Example: plot \"sin(x)\"",
 		"\n7. Delete stored variables",
 		"   -----------------------",
