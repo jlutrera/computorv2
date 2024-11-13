@@ -24,8 +24,11 @@ typedef struct s_data
 	Window	window;
 	int 	window_destroyed;
 	char	*function;
-	double	scale_x;
-	double	scale_y;
+	// double	scale_x;
+	// double	scale_y;
+	double	zoom;
+	double	offset_x;
+	double	offset_y;
 } t_data;
 
 // Función para obtener el tamaño de la ventana 
@@ -35,12 +38,6 @@ static void get_window_size(Display *display, Window window, int *width, int *he
 	XGetWindowAttributes(display, window, &attrs);
 	*width = attrs.width;
 	*height = attrs.height;
-}
-// Añadimos una función para manejar el zoom, modificando los valores de data->scale
-static void zoom(t_data *data, double factor)
-{
-	data->scale_x *= factor;
-	data->scale_y *= factor;
 }
 
 static int handle_close(t_data *data)
@@ -107,9 +104,10 @@ static double evaluate_function(const char *f, double x, int *error, int s)
 	newf = (char *)calloc(strlen(f) + s * (strlen(aux) + 3) + 1, sizeof(char));
 	int i = 0;
 	int k = 0;
+
 	while (f[i] != '\0')
 	{
-		if (f[i] != 'x')
+		if (f[i] != 'x' || f[i+1] == 'p')
 		{
 			newf[k] = f[i];
 			++k;
@@ -123,6 +121,7 @@ static double evaluate_function(const char *f, double x, int *error, int s)
 				++k;
 			}
 			newf[k] = '(';
+		
 			++k;
 			while (aux[j] != '\0')
 			{
@@ -142,50 +141,53 @@ static double evaluate_function(const char *f, double x, int *error, int s)
 	return result;
 }
 
-static void draw_line_bresenham(void *mlx, void *win, int x0, int y0, int x1, int y1, int color)
-{
-	int dx = abs(x1 - x0);
-	int dy = abs(y1 - y0);
-	int sx = (x0 < x1) ? 1 : -1;
-	int sy = (y0 < y1) ? 1 : -1;
-	int err = dx - dy;
-	int e2;
+// static void draw_line_bresenham(void *mlx, void *win, int x0, int y0, int x1, int y1, int color)
+// {
+// 	int dx = abs(x1 - x0);
+// 	int dy = abs(y1 - y0);
+// 	int sx = (x0 < x1) ? 1 : -1;
+// 	int sy = (y0 < y1) ? 1 : -1;
+// 	int err = dx - dy;
+// 	int e2;
 
-	while (1)
-	{
-		mlx_pixel_put(mlx, win, x0, y0, color);
+// 	while (1)
+// 	{
+// 		mlx_pixel_put(mlx, win, x0, y0, color);
 
-		if (x0 == x1 && y0 == y1)
-			break;
+// 		if (x0 == x1 && y0 == y1)
+// 			break;
 
-		e2 = 2 * err;
-		if (e2 > -dy)
-		{
-			err -= dy;
-			x0 += sx;
-		}
-		if (e2 < dx)
-		{
-			err += dx;
-			y0 += sy;
-		}
-	}
-}
+// 		e2 = 2 * err;
+// 		if (e2 > -dy)
+// 		{
+// 			err -= dy;
+// 			x0 += sx;
+// 		}
+// 		if (e2 < dx)
+// 		{
+// 			err += dx;
+// 			y0 += sy;
+// 		}
+// 	}
+// }
 
 static void plot_function(t_data *data)
 {
 	int		x;
-	double	y;
-	int		win_x;
-	int		win_y;
-	int		last_win_x;
-	int		last_win_y;
-	int		origin_y = data->height / 2;
-	int		origin_x = data->width / 2;
-	double	y_max = 0;
-	double	y_min = 0;
-	int		x_max = data->width / 2;
-	int		x_min = -data->width / 2;
+	int		y;
+	double 	scaled_x;
+	double 	scaled_y;
+	//double	y;
+	//int		win_x;
+	//int		win_y;
+	//int		last_win_x;
+	//int		last_win_y;
+	//int		origin_y = data->height / 2;
+	//int		origin_x = data->width / 2;
+	//double	y_max = 0;
+	//double	y_min = 0;
+	//int		x_max = data->width / 2;
+	//int		x_min = -data->width / 2;
 	int 	s;
 	int		error = 0;
 
@@ -196,49 +198,42 @@ static void plot_function(t_data *data)
 		handle_close(data);
 		return;
 	}
-	// Determinación de y_max y y_min para ajustar la escala
-	plotting = true;
-	for (x = x_min; x <= x_max; x++)
-	{
-		y = evaluate_function(data->function, x, &error, s);
-		if (error != 0)
-			continue;
-		if (y > y_max)
-			y_max = y;
-		if (y < y_min)
-			y_min = y;
-	}
-	
-	double scaley = (y_max - y_min) / (data->height * data->scale_y);
-	double scalex = ((double)x_max - (double)x_min) / (data->width * data->scale_x);
 
-	// Dibujar los ejes
+	plotting = true;
 	draw_axes(data);
 
 	// Variable para controlar el primer punto
-	int first_point = 1;
+	//int first_point = 1;
 
 	// Bucle de dibujo
-	for (x = x_min; x <= x_max; x++)
+	// for (x = x_min; x <= x_max; x++)
+	// {
+	// 	y = evaluate_function(data->function, x, &error, s);
+	// 	if (error != 0)
+	// 	{
+	// 		first_point = 1;
+	// 		continue;
+	// 	}
+	// 	win_x = origin_x + x / scalex;
+	// 	win_y = origin_y - y / scaley;
+
+	// 	// Dibuja una línea entre el último punto y el actual
+	// 	if (!first_point)	
+	// 		draw_line_bresenham(data->mlx, data->win, last_win_x, last_win_y, win_x, win_y, P_GREEN);
+	// 	else
+	// 		first_point = 0;  // La primera vez no hay punto anterior
+
+	// 	// Actualiza el último punto
+	// 	last_win_x = win_x;
+	// 	last_win_y = win_y;
+	// }
+	for (x = 0; x < data->width; x++) 
 	{
-		y = evaluate_function(data->function, x, &error, s);
-		if (error != 0)
-		{
-			first_point = 1;
-			continue;
-		}
-		win_x = origin_x + x / scalex;
-		win_y = origin_y - y / scaley;
-
-		// Dibuja una línea entre el último punto y el actual
-		if (!first_point)	
-			draw_line_bresenham(data->mlx, data->win, last_win_x, last_win_y, win_x, win_y, P_GREEN);
-		else
-			first_point = 0;  // La primera vez no hay punto anterior
-
-		// Actualiza el último punto
-		last_win_x = win_x;
-		last_win_y = win_y;
+		 scaled_x = (x - data->width / 2) / data->zoom + data->offset_x;
+		 scaled_y = evaluate_function(data->function, scaled_x, &error, s);
+		 y = (int)((scaled_y - data->offset_y) * data->zoom) + data->height / 2;
+		 if (y >= 0 && y < data->height) 
+		 	mlx_pixel_put(data->mlx, data->win, x, data->height - y, P_GREEN);
 	}
 }
 
@@ -248,11 +243,11 @@ static int handle_mouse_scroll(int button, int x, int y, t_data *data)
 	(void)x;
 	(void)y;
 	if (button == MSCROLL_UP)
-		zoom(data, ZOOM_FACTOR);   // Zoom in
+		data->zoom *= 1.1;
 	else if (button == MSCROLL_DOWN)
-		zoom(data, 1.0 / ZOOM_FACTOR); // Zoom out
-	plot_function(data); // Redibuja la función con el nuevo zoom
-	return (0);
+		data->zoom /= 1.1;
+	plot_function(data);
+	return 0;
 }
 
 // Manejador de teclas para zoom
@@ -264,9 +259,9 @@ static int handle_key_press(int keycode, t_data *data)
 		return (0);
 	}
 	if (keycode == K_UP)
-		zoom(data, ZOOM_FACTOR);
+		data->zoom *= 1.1;
 	else if (keycode == K_DOWN)
-		zoom(data, 1.0 / ZOOM_FACTOR);
+		data->zoom /= 1.1;
 	plot_function(data);
 	return (0);
 }
@@ -310,9 +305,13 @@ static void draw(char *f)
 	data.win = mlx_new_window(data.mlx, data.width, data.height, f);
 	data.window = *(Window *)data.win;
 	data.window_destroyed = 0;
-	data.scale_x = 1.0;
-	data.scale_y = 1.;
+	// data.scale_x = 1.0;
+	// data.scale_y = 1.;
 	data.function = f;
+	data.zoom = 30;
+	data.offset_x = 0;
+	data.offset_y = 0;
+
 
 	plot_function(&data);
 

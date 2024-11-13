@@ -27,8 +27,10 @@ static char	*makeoperation(char c, double a, double b, int *e)
 	else if (c == '/')
 	{
 		*e = (b == 0);
-		if (*e && !plotting)
-			printf_error("Divison by zero is not defined", NULL, -1);
+		if (*e)
+		{
+			if (!plotting) printf_error("Divison by zero is not defined", NULL, -1);
+		}
 		else
 			result = a / b;
 	}
@@ -37,8 +39,10 @@ static char	*makeoperation(char c, double a, double b, int *e)
 		*e = !isinteger(b) || (a == 0 && b <= 0);
 		if (!isinteger(b))
 			printf_error("^ is only defined for integer exponents", NULL, -1);
-		else if (a == 0 && b <= 0 && !plotting)
-			printf_error("^ is not defined for 0^0 and 0^(-k)", NULL, -1);
+		else if (a == 0 && b <= 0)
+		{
+			if (!plotting) printf_error("^ is not defined for 0^0 and 0^(-k)", NULL, -1);
+		}
 		else
 			result = ft_power(a, b);
 	}
@@ -47,18 +51,24 @@ static char	*makeoperation(char c, double a, double b, int *e)
 		*e = !isinteger(a) || !isinteger(b) || b <= 0 || a < 0;
 		if (!isinteger(a) || !isinteger(b))
 			printf_error("% is only defined for integer numbers", NULL, -1);
-		else if (b == 0 && !plotting)
-			printf_error("% by zero is not defined", NULL, -1);
-		else if ((a < 0 || b <= 0) && !plotting)
-			printf_error("% is only defined for positive numbers", NULL, -1);
+		else if (b == 0)
+		{
+			if (!plotting) printf_error("% by zero is not defined", NULL, -1);
+		}
+		else if (a < 0 || b <= 0)
+		{
+			if (!plotting) printf_error("% is only defined for positive numbers", NULL, -1);
+		}
 		else
 			result = ft_mod(a,b);
 	}
 	else if (c == '!')
 	{
 		*e = a < 0 || !isinteger(a);
-		if (a < 0 && !plotting)
-			printf_error("The factorial of negative numbers is not defined", NULL, -1);
+		if (a < 0)
+		{
+			if (!plotting) printf_error("The factorial of negative numbers is not defined", NULL, -1);
+		}
 		else if (!isinteger(a))
 			printf_error("The factorial is only defined for integers", NULL, -1);
 		else
@@ -124,35 +134,52 @@ static char *operatefunction(char *aux, char *number, int *e)
 
 	if (!strcmp(aux, "sqrt"))
 	{	
-		if (a < 0 && !plotting)
+		if (a < 0)
 		{
-			result = ft_root(-a, 2);
-			return strcat(doubletostr(result),"i");
+			if (!plotting) 
+			{
+				result = ft_root(-a, 2);
+				return strcat(doubletostr(result),"i");
+			}
 		}
-		result = ft_root(a, 2);
+		else
+			result = ft_root(a, 2);
 	}
 
 	else if (!strcmp(aux, "exp"))
 	{
-		*e = (!isinteger(a));
+		*e = !isinteger(a) || a > 220;
 		if (*e)
-			printf_error("The exponential function is only defined for integers", NULL, -1);
+		{
+			if (!isinteger(a))
+			{
+				if (!plotting) printf_error("The exponential function is only defined for integers", NULL, -1);
+			}
+			else if (a > 220)
+			{
+				if (!plotting) printf_error("The exponential function is too large", NULL, -1);
+			}
+		}
 		else
 			result = ft_exp(a);
 	}
 	else if (!strcmp(aux, "log"))
 	{
 		*e = (a <= 0);
-		if (*e && !plotting)
-			printf_error("The log function is only defined for x > 0", NULL, -1);
+		if (*e)
+		{
+			if (!plotting) printf_error("The log function is only defined for x > 0", NULL, -1);
+		}
 		else
 			result = ft_log(a);
 	}
 	else if (!strcmp(aux, "ln"))
 	{
 		*e = (a <= 0);
-		if (*e && !plotting)
-			printf_error("The ln function is only defined for x > 0", NULL, -1);
+		if (*e)
+		{
+			if (!plotting) printf_error("The ln function is only defined for x > 0", NULL, -1);
+		}
 		else
 			result = ft_ln(a);
 	}
@@ -163,8 +190,10 @@ static char *operatefunction(char *aux, char *number, int *e)
 	else if (!strcmp(aux, "acos"))
 	{
 		*e = (ft_abs(a) > 1);
-		if (*e && !plotting)
-			printf_error("The acos function is only defined for -1 <= x <= 1", NULL, -1);
+		if (*e)
+		{
+			if (!plotting) printf_error("The acos function is only defined for -1 <= x <= 1", NULL, -1);
+		}
 		else
 			result = ft_acos(a);
 	}
@@ -175,24 +204,30 @@ static char *operatefunction(char *aux, char *number, int *e)
 	else if (!strcmp(aux, "asin"))
 	{
 		*e = (ft_abs(a) > 1);
-		if (*e && !plotting)
-			printf_error("The asin function is only defined for -1 <= x <= 1", NULL, -1);
+		if (*e)
+		{
+			if (!plotting) printf_error("The asin function is only defined for -1 <= x <= 1", NULL, -1);
+		}
 		else
 			result = ft_asin(a);
 	}
 	else if (!strcmp(aux, "tan"))
 	{
 		*e = (a == PI / 2 || a == 3 * PI / 2);
-		if (*e && !plotting)
-			printf_error("The tan function is not defined for PI/2 and 3*PI/2 radians", NULL, -1);
+		if (*e)
+		{
+			if (!plotting) printf_error("The tan function is not defined for PI/2 and 3*PI/2 radians", NULL, -1);
+		}
 		else
 			result = ft_tan(a);
 	}
 	else if (!strcmp(aux, "atan"))
 	{
 		*e = (a == PI / 2 || a == 3 * PI / 2);
-		if (*e && !plotting)
-			printf_error("The atan function is not defined for PI/2 and 3*PI/2 radians", NULL, -1);
+		if (*e)
+		{
+			if (!plotting) printf_error("The atan function is not defined for PI/2 and 3*PI/2 radians", NULL, -1);
+		}
 		else
 			result = ft_atan(a);
 	}
