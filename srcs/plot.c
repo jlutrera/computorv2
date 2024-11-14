@@ -141,35 +141,35 @@ static double evaluate_function(const char *f, double x, int *error, int s)
 	return result;
 }
 
-// static void draw_line_bresenham(void *mlx, void *win, int x0, int y0, int x1, int y1, int color)
-// {
-// 	int dx = abs(x1 - x0);
-// 	int dy = abs(y1 - y0);
-// 	int sx = (x0 < x1) ? 1 : -1;
-// 	int sy = (y0 < y1) ? 1 : -1;
-// 	int err = dx - dy;
-// 	int e2;
+static void draw_line_bresenham(void *mlx, void *win, int x0, int y0, int x1, int y1, int color)
+{
+	int dx = abs(x1 - x0);
+	int dy = abs(y1 - y0);
+	int sx = (x0 < x1) ? 1 : -1;
+	int sy = (y0 < y1) ? 1 : -1;
+	int err = dx - dy;
+	int e2;
 
-// 	while (1)
-// 	{
-// 		mlx_pixel_put(mlx, win, x0, y0, color);
+	while (1)
+	{
+		mlx_pixel_put(mlx, win, x0, y0, color);
 
-// 		if (x0 == x1 && y0 == y1)
-// 			break;
+		if (x0 == x1 && y0 == y1)
+			break;
 
-// 		e2 = 2 * err;
-// 		if (e2 > -dy)
-// 		{
-// 			err -= dy;
-// 			x0 += sx;
-// 		}
-// 		if (e2 < dx)
-// 		{
-// 			err += dx;
-// 			y0 += sy;
-// 		}
-// 	}
-// }
+		e2 = 2 * err;
+		if (e2 > -dy)
+		{
+			err -= dy;
+			x0 += sx;
+		}
+		if (e2 < dx)
+		{
+			err += dx;
+			y0 += sy;
+		}
+	}
+}
 
 static void plot_function(t_data *data)
 {
@@ -177,19 +177,12 @@ static void plot_function(t_data *data)
 	int		y;
 	double 	scaled_x;
 	double 	scaled_y;
-	//double	y;
-	//int		win_x;
-	//int		win_y;
-	//int		last_win_x;
-	//int		last_win_y;
-	//int		origin_y = data->height / 2;
-	//int		origin_x = data->width / 2;
-	//double	y_max = 0;
-	//double	y_min = 0;
-	//int		x_max = data->width / 2;
-	//int		x_min = -data->width / 2;
 	int 	s;
 	int		error = 0;
+
+	int		last_x;
+	int		last_y;
+	int		first_point = 1;
 
 	s = checkfunction(data->function);
 	if (s == -1)
@@ -198,42 +191,40 @@ static void plot_function(t_data *data)
 		handle_close(data);
 		return;
 	}
-
+	
 	plotting = true;
 	draw_axes(data);
 
-	// Variable para controlar el primer punto
-	//int first_point = 1;
+	char *aux = doubletostr(data->zoom);
+	mlx_string_put(data->mlx, data->win, 25, 20, P_YELLOW, aux);
+	mlx_string_put(data->mlx, data->win, 10, 15, P_YELLOW, "Zoom: ");
+	mlx_string_put(data->mlx, data->win, 50, 1, P_YELLOW, aux);
+	free(aux);
 
-	// Bucle de dibujo
-	// for (x = x_min; x <= x_max; x++)
-	// {
-	// 	y = evaluate_function(data->function, x, &error, s);
-	// 	if (error != 0)
-	// 	{
-	// 		first_point = 1;
-	// 		continue;
-	// 	}
-	// 	win_x = origin_x + x / scalex;
-	// 	win_y = origin_y - y / scaley;
-
-	// 	// Dibuja una línea entre el último punto y el actual
-	// 	if (!first_point)	
-	// 		draw_line_bresenham(data->mlx, data->win, last_win_x, last_win_y, win_x, win_y, P_GREEN);
-	// 	else
-	// 		first_point = 0;  // La primera vez no hay punto anterior
-
-	// 	// Actualiza el último punto
-	// 	last_win_x = win_x;
-	// 	last_win_y = win_y;
-	// }
 	for (x = 0; x < data->width; x++) 
 	{
-		 scaled_x = (x - data->width / 2) / data->zoom + data->offset_x;
-		 scaled_y = evaluate_function(data->function, scaled_x, &error, s);
-		 y = (int)((scaled_y - data->offset_y) * data->zoom) + data->height / 2;
-		 if (y >= 0 && y < data->height) 
-		 	mlx_pixel_put(data->mlx, data->win, x, data->height - y, P_GREEN);
+		scaled_x = (x - data->width / 2) / data->zoom + data->offset_x;
+		scaled_y = evaluate_function(data->function, scaled_x, &error, s);
+		if (error != 0)
+		{
+			first_point = 1;
+			continue;
+		}
+		y = (int)((scaled_y - data->offset_y) * data->zoom) + data->height / 2;
+		if (y >= 0 && y < data->height)
+		{
+		 	if (!first_point)
+		 	{
+		 		draw_line_bresenham(data->mlx, data->win, last_x, data->height - last_y, x, data->height - y, P_GREEN);
+		 	}
+			else
+			{
+		 		first_point = 0;
+				mlx_pixel_put(data->mlx, data->win, x, data->height - y, P_GREEN);
+			}
+			last_x = x;
+		 	last_y = y;
+		}
 	}
 }
 
@@ -305,8 +296,17 @@ static void draw(char *f)
 	data.win = mlx_new_window(data.mlx, data.width, data.height, f);
 	data.window = *(Window *)data.win;
 	data.window_destroyed = 0;
-	// data.scale_x = 1.0;
-	// data.scale_y = 1.;
+
+	// Configura las opciones de tamaño
+	XSizeHints *size_hints = XAllocSizeHints();
+	size_hints->flags = PSize | PMinSize | PMaxSize;
+	size_hints->min_width = 100;   // Tamaño mínimo
+	size_hints->min_height = 100;
+	size_hints->max_width = WIDTH;  // Tamaño máximo
+	size_hints->max_height = HEIGHT;
+	XSetWMNormalHints(data.display, data.window, size_hints);
+	XFree(size_hints);
+
 	data.function = f;
 	data.zoom = 30;
 	data.offset_x = 0;
