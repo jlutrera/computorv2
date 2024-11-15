@@ -10,26 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "computor.h"
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-
-typedef struct s_data
-{
-	void 	*mlx;
-	void 	*win;
-	int 	width;
-	int 	height;
-	Display	*display;
-	Window	window;
-	int 	window_destroyed;
-	char	*function;
-	// double	scale_x;
-	// double	scale_y;
-	double	zoom;
-	double	offset_x;
-	double	offset_y;
-} t_data;
+#include "plotter.h"
 
 // Función para obtener el tamaño de la ventana 
 static void get_window_size(Display *display, Window window, int *width, int *height)
@@ -38,6 +19,36 @@ static void get_window_size(Display *display, Window window, int *width, int *he
 	XGetWindowAttributes(display, window, &attrs);
 	*width = attrs.width;
 	*height = attrs.height;
+}
+
+static void draw_line_bresenham(void *mlx, void *win, int x0, int y0, int x1, int y1, int color)
+{
+	int dx = abs(x1 - x0);
+	int dy = abs(y1 - y0);
+	int sx = (x0 < x1) ? 1 : -1;
+	int sy = (y0 < y1) ? 1 : -1;
+	int err = dx - dy;
+	int e2;
+
+	while (1)
+	{
+		mlx_pixel_put(mlx, win, x0, y0, color);
+
+		if (x0 == x1 && y0 == y1)
+			break;
+
+		e2 = 2 * err;
+		if (e2 > -dy)
+		{
+			err -= dy;
+			x0 += sx;
+		}
+		if (e2 < dx)
+		{
+			err += dx;
+			y0 += sy;
+		}
+	}
 }
 
 static int handle_close(t_data *data)
@@ -53,14 +64,75 @@ static int handle_close(t_data *data)
 
 static void draw_axes(t_data *data)
 {
-	int center_x = data->width / 2;
-	int center_y = data->height / 2;
-
+	int center_x = data->width / 2 - (int)(data->offset_x * data->zoom);
+	int center_y = data->height / 2 + (int)(data->offset_y * data->zoom);
 	mlx_clear_window(data->mlx, data->win);
-	for (int i = 0; i < data->width; i++)
-		mlx_pixel_put(data->mlx, data->win, i, center_y, P_WHITE);
-	for (int i = 0; i < data->height; i++)
-		mlx_pixel_put(data->mlx, data->win, center_x, i, P_WHITE);
+
+	mlx_string_put(data->mlx, data->win, center_x - 10, center_y - 10, P_YELLOW, "0");
+	
+	// Dibujar el eje Y
+	if (center_y >= 0 && center_y < data->height)
+	{
+		for (int i = 0; i < data->width; i++)
+			mlx_pixel_put(data->mlx, data->win, i, center_y, P_WHITE);
+	}
+
+	// Dibujar el eje X
+	if (center_x >= 0 && center_x < data->width)
+	{
+		for (int i = 0; i < data->height; i++)
+			mlx_pixel_put(data->mlx, data->win, center_x, i, P_WHITE);
+	}
+
+	char label[20];
+	//int spacing = (int)(data->zoom);  // Ajusta el espaciado de las marcas según el zoom
+	int spacing = 50;
+
+	// Marcas y etiquetas en el eje X (horizontal)
+	for (int x = center_x + spacing; x < data->width; x += spacing)
+	{
+		// Línea vertical
+		draw_line_bresenham(data->mlx, data->win, x, 0, x, data->height, P_DARKGREY);
+
+		double world_x = (x - center_x) / data->zoom;
+		snprintf(label, sizeof(label), "%.1f", world_x);
+		mlx_string_put(data->mlx, data->win, x, center_y - 13, P_YELLOW, label);
+		draw_line_bresenham(data->mlx, data->win, x, center_y - 5, x, center_y + 5, P_WHITE);
+	}
+
+	for (int x = center_x - spacing; x > 0; x -= spacing)
+	{
+		// Línea vertical
+		draw_line_bresenham(data->mlx, data->win, x, 0, x, data->height, P_DARKGREY);
+
+		double world_x = (x - center_x) / data->zoom;
+		snprintf(label, sizeof(label), "%.1f", world_x);
+		mlx_string_put(data->mlx, data->win, x, center_y - 13, P_YELLOW, label);
+		draw_line_bresenham(data->mlx, data->win, x, center_y - 5, x, center_y + 5, P_WHITE);
+	}
+
+	// Marcas y etiquetas en el eje Y (vertical)
+	for (int y = center_y + spacing; y < data->height; y += spacing)
+	{
+		// Línea horizontal
+		draw_line_bresenham(data->mlx, data->win, 0, y, data->width, y, P_DARKGREY);
+
+		double world_y = (center_y - y) / data->zoom;
+		snprintf(label, sizeof(label), "%.1f", world_y);
+		mlx_string_put(data->mlx, data->win, center_x + 10, y, P_YELLOW, label);
+		draw_line_bresenham(data->mlx, data->win, center_x - 5, y, center_x + 5, y, P_WHITE);
+	}
+
+	for (int y = center_y - spacing; y > 0; y -= spacing)
+	{
+		// Línea horizontal
+		draw_line_bresenham(data->mlx, data->win, 0, y, data->width, y, P_DARKGREY);
+
+		double world_y = (center_y - y) / data->zoom;
+		snprintf(label, sizeof(label), "%.1f", world_y);
+		mlx_string_put(data->mlx, data->win, center_x + 10, y, P_YELLOW, label);
+		draw_line_bresenham(data->mlx, data->win, center_x - 5, y, center_x + 5, y, P_WHITE);
+	}
 }
 
 // Función para comprobar si la función es válida
@@ -141,36 +213,6 @@ static double evaluate_function(const char *f, double x, int *error, int s)
 	return result;
 }
 
-static void draw_line_bresenham(void *mlx, void *win, int x0, int y0, int x1, int y1, int color)
-{
-	int dx = abs(x1 - x0);
-	int dy = abs(y1 - y0);
-	int sx = (x0 < x1) ? 1 : -1;
-	int sy = (y0 < y1) ? 1 : -1;
-	int err = dx - dy;
-	int e2;
-
-	while (1)
-	{
-		mlx_pixel_put(mlx, win, x0, y0, color);
-
-		if (x0 == x1 && y0 == y1)
-			break;
-
-		e2 = 2 * err;
-		if (e2 > -dy)
-		{
-			err -= dy;
-			x0 += sx;
-		}
-		if (e2 < dx)
-		{
-			err += dx;
-			y0 += sy;
-		}
-	}
-}
-
 static void plot_function(t_data *data)
 {
 	int		x;
@@ -195,10 +237,11 @@ static void plot_function(t_data *data)
 	plotting = true;
 	draw_axes(data);
 
-	char *aux = doubletostr(data->zoom);
-	mlx_string_put(data->mlx, data->win, 25, 20, P_YELLOW, aux);
-	mlx_string_put(data->mlx, data->win, 10, 15, P_YELLOW, "Zoom: ");
-	mlx_string_put(data->mlx, data->win, 50, 1, P_YELLOW, aux);
+	char *aux = doubletostr(data->zoom / 10);
+	mlx_string_put(data->mlx, data->win, 10, 15, P_CYAN, "Zoom: ");
+	mlx_string_put(data->mlx, data->win, 50, 15, P_YELLOW, aux);
+	mlx_string_put(data->mlx, data->win, 10,30, P_CYAN, "Function: ");
+	mlx_string_put(data->mlx, data->win, 70, 30, P_YELLOW, data->function);
 	free(aux);
 
 	for (x = 0; x < data->width; x++) 
@@ -234,9 +277,9 @@ static int handle_mouse_scroll(int button, int x, int y, t_data *data)
 	(void)x;
 	(void)y;
 	if (button == MSCROLL_UP)
-		data->zoom *= 1.1;
+		data->zoom *= 1.5;
 	else if (button == MSCROLL_DOWN)
-		data->zoom /= 1.1;
+		data->zoom /= 1.5;
 	plot_function(data);
 	return 0;
 }
@@ -250,9 +293,13 @@ static int handle_key_press(int keycode, t_data *data)
 		return (0);
 	}
 	if (keycode == K_UP)
-		data->zoom *= 1.1;
+		data->offset_y -= 10 / data->zoom; // Ajuste desplazamiento hacia arriba
 	else if (keycode == K_DOWN)
-		data->zoom /= 1.1;
+		data->offset_y += 10 / data->zoom; // Ajuste desplazamiento hacia abajo
+	else if (keycode == K_LEFT)
+		data->offset_x += 10 / data->zoom;  // Ajuste desplazamiento a la izquierda
+    else if (keycode == K_RIGHT)
+		data->offset_x -= 10 / data->zoom; // Ajuste desplazamiento a la derecha
 	plot_function(data);
 	return (0);
 }
@@ -293,7 +340,7 @@ static void draw(char *f)
 	data.mlx = mlx_init();
 	data.width = WIDTH;
 	data.height = HEIGHT;
-	data.win = mlx_new_window(data.mlx, data.width, data.height, f);
+	data.win = mlx_new_window(data.mlx, data.width, data.height, "Computor v.2");
 	data.window = *(Window *)data.win;
 	data.window_destroyed = 0;
 
@@ -308,7 +355,7 @@ static void draw(char *f)
 	XFree(size_hints);
 
 	data.function = f;
-	data.zoom = 30;
+	data.zoom = 40;
 	data.offset_x = 0;
 	data.offset_y = 0;
 

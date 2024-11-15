@@ -255,7 +255,6 @@ void	token_type(t_token **list)
 	vc = v_calc;
 	//evitamos que se muestren los cálculos de nuevo
 	v_calc = false;
-
 	while (ptr)
 	{
 		typed  = false;

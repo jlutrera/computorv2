@@ -943,7 +943,7 @@ int calc_with_matrices(char **str)
 		return printf_error("The matrix is not square\n", NULL, -1);
 	if (error == 3)
 		return printf_error("The matrix cannot be inverted", NULL, -1);
-	if (strchr(*str, '[') && onlydigits(*str))
+	if (strchr(*str, '[') && onlydigits(*str) )
 	{
 		char ***response;
 		i = fixRows(*str);
