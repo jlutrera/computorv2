@@ -98,6 +98,5 @@ void calc_with_variables(char **str)
 			i = strchr(*str, '(') - (*str);
 		}
 	}
-	
 	transformexpression(str);
 }

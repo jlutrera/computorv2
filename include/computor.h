@@ -62,9 +62,9 @@ typedef struct s_token
 
 }	t_token;
 
-//Variable global para visualizar las operaciones
-extern bool	v_calc;
-extern bool	plotting;
+extern bool	v_calc; // variable global para visualizar las operaciones
+extern bool	plotting; // variable global para evitar que se muestren resultados y errores al dibujar
+
 // algebra.c
 void	calc_with_variables(char **str);
 int 	complex_calc(char **str);
@@ -106,6 +106,11 @@ double	ft_deg(double x);
 double	ft_rad(double x);
 // matrix.c
 int 	calc_with_matrices(char **str);
+char	***create_matrix(char *str, int r, int c);
+void	free_matrix(char ***matrix, int r, int c);
+int		fixColumns(char *str);
+int		fixRows(char *str);
+void	print_matrix(char ***matrix, int r, int c);
 // parse.c
 int		parse(char **input, t_token **token_list);
 // plot.c
@@ -133,5 +138,6 @@ bool	check_brackets(char *content);
 bool	isfunctionword(char *token);
 void	free_tokens(t_token **token_list);
 void	token_type(t_token **list);
+int 	onlydigits(char *s);
 
 #endif

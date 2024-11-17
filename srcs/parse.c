@@ -218,6 +218,37 @@ static bool variable_not_found(char *token, char *content, t_token *token_list)
 	return 0;
 }
 
+void print_result(char *str)
+{
+	if (strchr(str, '['))
+	{
+		if (onlydigits(str))
+		{
+			char ***response;
+			int i = fixRows(str);
+			int j = fixColumns(str);
+			response = create_matrix(str, i, j);
+			print_matrix(response, i, j);
+			free_matrix(response, i, j);
+		}
+		else
+		{
+			int i = -1;
+			printf("   ");
+			while (str[++i])
+			{
+				if (str[i] == '#')
+					printf("**");
+				else
+					printf("%c", str[i]);
+			}
+			printf("\n");
+		}
+	}
+	else
+		printf("   %s\n", str);
+}
+
 int parse(char **input, t_token **token_list)
 {
 	int		i;
@@ -256,8 +287,8 @@ int parse(char **input, t_token **token_list)
 	if (!strcmp(content, "?"))
 	{
 		if (!syntax_error_content(token, NULL) &&
-			compute(&token, token_list, NULL) == 0 && !strchr(token, '['))
-				printf("   %s\n", token);
+			compute(&token, token_list, NULL) == 0)
+				print_result(token);
 	}
 	else if (!syntax_error_token(token) &&
 			 !syntax_error_content(content, token) &&
@@ -269,8 +300,7 @@ int parse(char **input, t_token **token_list)
 		{
 			add_token_to_list(token_list, token, content);
 			ft_add_history(cpytoken, content, response);
-			if (!strchr(response, '['))
-				printf("   %s\n", response);
+			print_result(response);
 		}
 		free(response);
 		free(cpytoken);

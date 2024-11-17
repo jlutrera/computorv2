@@ -295,7 +295,7 @@ static void print_spaces(int n)
 	for (int i = 0; i < n; i++)
 		printf(" ");
 }
-static void	print_matrix(char ***matrix, int r, int c)
+void	print_matrix(char ***matrix, int r, int c)
 {
 	size_t maxlen[c];
 	
@@ -339,7 +339,7 @@ static void	print_matrix(char ***matrix, int r, int c)
 	printf("\u2518\n");
 }
 
-static int	fixRows(char *str)
+int	fixRows(char *str)
 {
 	int i = 0;
 	int rows = 1;
@@ -358,7 +358,7 @@ static int	fixRows(char *str)
 	return rows;
 }
 
-static int	fixColumns(char *str)
+int	fixColumns(char *str)
 {
 	int i = 0;
 	int columns = 1;
@@ -372,7 +372,7 @@ static int	fixColumns(char *str)
 	return columns;
 }
 
-static void	free_matrix(char ***matrix, int r, int c)
+void	free_matrix(char ***matrix, int r, int c)
 {
 	if (matrix == NULL)
 		return;
@@ -385,7 +385,7 @@ static void	free_matrix(char ***matrix, int r, int c)
 	free(matrix);
 }
 
-static char	***create_matrix(char *str, int r, int c)
+char	***create_matrix(char *str, int r, int c)
 {
 	int i = 0;
 	int j = 0;
@@ -859,20 +859,6 @@ static char *matrixcalc(char *str, int *error)
 	return NULL;
 }
 
-static int onlydigits(char *s)
-{
-	int i;
-
-	i = 0;
-	while (s[i])
-	{
-		if (isalpha(s[i]))
-			return 0;
-		++i;
-	}
-	return 1;
-}
-
 int calc_with_matrices(char **str)
 {
 	int		error = 0;
@@ -884,6 +870,8 @@ int calc_with_matrices(char **str)
 	char	*newstr;
 	int		op;
 
+
+	if (v_calc)	printf("PROCESSING WITH MATRIX : %s%s%s\n", CYAN, *str, RESET);
 	op = 0;
 	while (op < 4 && strchr(*str, '[') && onlydigits(*str))
 	{
@@ -938,32 +926,11 @@ int calc_with_matrices(char **str)
 		}
 	}
 	if (error == 1)
-		return printf_error("Operation is not valid", NULL, -1);
+		return printf_error("The operation is not supported", NULL, -1);
 	if (error == 2)
 		return printf_error("The matrix is not square\n", NULL, -1);
 	if (error == 3)
 		return printf_error("The matrix cannot be inverted", NULL, -1);
-	if (strchr(*str, '[') && onlydigits(*str) )
-	{
-		char ***response;
-		i = fixRows(*str);
-		j = fixColumns(*str);
-		response = create_matrix(*str, i, j);
-		print_matrix(response, i, j);
-		free_matrix(response, i, j);
-	}
-	else if (v_calc && !onlydigits(*str))
-	{
-		i = -1;
-		printf("   ");
-		while ((*str)[++i])
-		{
-			if ((*str)[i] == '#')
-				printf("**");
-			else
-				printf("%c", (*str)[i]);
-		}
-		printf("\n");
-	}
+
 	return 0;
 }

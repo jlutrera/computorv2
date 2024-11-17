@@ -15,8 +15,6 @@ typedef struct s_data
 	Window	window;
 	int 	window_destroyed;
 	char	*function;
-	// double	scale_x;
-	// double	scale_y;
 	double	zoom;
 	double	offset_x;
 	double	offset_y;

@@ -12,6 +12,21 @@
 
 #include "computor.h"
 
+
+int onlydigits(char *s)
+{
+	int i;
+
+	i = 0;
+	while (s[i])
+	{
+		if (isalpha(s[i]))
+			return 0;
+		++i;
+	}
+	return 1;
+}
+
 bool isinteger(double num)
 {
 	int part_int;
@@ -253,6 +268,7 @@ void	token_type(t_token **list)
 	ptr = *list;
 	//guardamos el valor de v_calc y
 	vc = v_calc;
+
 	//evitamos que se muestren los cálculos de nuevo
 	v_calc = false;
 	while (ptr)

@@ -59,10 +59,17 @@ static int change_content(char **s, int j, int i, char *dest)
 	if (extra)
 		new_str[j++] = '*';
 
-	new_str[j++] = '(';
+	if (dest[0] != '[' || dest[len_dest - 1] != ']')
+	{
+		new_str[j++] = '(';
+		++extra;
+	}
 	strcat(new_str, dest);
-	strcat(new_str, ")");
-	extra += 2;
+	if (dest[0] != '[' || dest[len_dest - 1] != ']')
+	{
+		strcat(new_str, ")");
+		++extra;
+	}
 	strcat(new_str, *s + i);
 	remove_spaces(new_str);
 	free(*s);
@@ -225,7 +232,6 @@ int	compute(char **s, t_token **list, char *token)
 	char	*var;
 	char	variable[2];
 
-	plotting = false;
 	variable[0] = '\0';
 	variable[1] = '\0';
 	i = 0;

@@ -1,0 +1,15 @@
+FALLOS
+---------------------------------------
+OK. Si f(x) = x * [[4,5]] y calculo f(i)------> se queda bloqueado
+2. Si f y g son matrices, no deja hacer f**g
+3. Calcular potencias de () cuando solo haya multiplicaciones, por ejemplo (2*x)^2
+	Lo necesito porque (2i)^2 TIENE que calcularlo
+4. f(x) = 2*x*i y si calculo f(i) me da SEGFAULT
+
+
+POSIBLES MEJORAS
+---------------------------------------
+1. Operaciones con monomios: +, - y *
+     - Usar un array bimensional:  [0] = nombre de la variable con su grado
+	                               [1] = coeficiente
+ 

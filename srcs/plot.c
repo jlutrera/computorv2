@@ -85,8 +85,7 @@ static void draw_axes(t_data *data)
 	}
 
 	char label[20];
-	//int spacing = (int)(data->zoom);  // Ajusta el espaciado de las marcas según el zoom
-	int spacing = 50;
+	int spacing = 40;  // Ajusta el valor de las marcas según el zoom
 
 	// Marcas y etiquetas en el eje X (horizontal)
 	for (int x = center_x + spacing; x < data->width; x += spacing)
@@ -135,11 +134,32 @@ static void draw_axes(t_data *data)
 	}
 }
 
-// Función para comprobar si la función es válida
-int checkfunction(const char *f)
+static int count_x(const char *f)
+{
+	int s = 0;
+	int i = 0;
+
+	while (f[i] != '\0')
+	{
+		if (isalpha(f[i]))
+		{
+			int j = i;
+			while (f[i] != '\0' && isalpha(f[i]))
+				i++;
+			char *aux = ft_substr(f, j, i);
+			if (!strcmp(aux, "x"))
+				s += 1;
+			free(aux);
+		}
+		else
+			++i;
+	}
+	return s;
+}
+
+static int checkfunction(const char *f)
 {
 	int i = 0;
-	int s = 0;
 
 	while (f[i] != '\0')
 	{
@@ -152,20 +172,18 @@ int checkfunction(const char *f)
 			if (strcmp(aux, "x") != 0 && !isfunctionword(aux))
 			{
 				free(aux);
-				return -1;
+				return 1;
 			}
 			free(aux);
-			if (f[i - 1] == 'x')
-				s += 1;
 		}
 		else
 		{
 			if (!isdigit(f[i]) && !strchr("x+-*/^%!()", f[i]))
-				return -1;
+				return 1;
 			++i;
 		}
 	}
-	return s;
+	return 0;
 }
 
 static double evaluate_function(const char *f, double x, int *error, int s) 
@@ -226,14 +244,7 @@ static void plot_function(t_data *data)
 	int		last_y;
 	int		first_point = 1;
 
-	s = checkfunction(data->function);
-	if (s == -1)
-	{
-		printf_error("Invalid function\n", NULL, -1);
-		handle_close(data);
-		return;
-	}
-	
+	s = count_x(data->function);
 	plotting = true;
 	draw_axes(data);
 
@@ -268,6 +279,8 @@ static void plot_function(t_data *data)
 			last_x = x;
 		 	last_y = y;
 		}
+		else
+			first_point = 1;
 	}
 }
 
@@ -277,9 +290,9 @@ static int handle_mouse_scroll(int button, int x, int y, t_data *data)
 	(void)x;
 	(void)y;
 	if (button == MSCROLL_UP)
-		data->zoom *= 1.5;
-	else if (button == MSCROLL_DOWN)
-		data->zoom /= 1.5;
+		data->zoom += 10;
+	else if (button == MSCROLL_DOWN && data->zoom > 10)
+		data->zoom -= 10;
 	plot_function(data);
 	return 0;
 }
@@ -412,6 +425,11 @@ bool plot(char *input)
 	{
 		free(function);
 		return 1;
+	}
+	if (checkfunction(function) == 1)
+	{
+		free(function);
+		return printf_error("Bad function expression.", NULL, -1);
 	}
 	draw(function);
 	free(function);
