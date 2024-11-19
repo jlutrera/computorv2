@@ -520,7 +520,6 @@ static int detectbrackets(char **str)
 					}
 
 					if (v_calc) printf("+ BRACKET: %s%s%s\n", CYAN, substr, RESET);
-				
 					if (detectbrackets(&substr) || lookupfunction(&substr))
 					{
 						free(substr);
@@ -536,7 +535,7 @@ static int detectbrackets(char **str)
 					{
 						if (thereareoperations(substr))
 							calc(&substr);
-						printf("str = %s, start = %d, i = %d, substr = %s\n", *str, start, i, substr);
+
 						update_result(str, start, i, substr);
 						resolvedoblesigne(str);
 						i = start + strlen(substr);
@@ -596,7 +595,6 @@ static char *newstr(char *substr, int c)
 		++i;
 	}
 	remove_spaces(t);
-	printf(      "t = %s%s%s\n", CYAN, t, RESET);
 	return (t);
 }
 
@@ -618,6 +616,7 @@ int doingproducts(char **strl, char *substr)
 				++i;
 			while (substr[i] != ')' && (substr[i] == '.' || isdigit(substr[i]) || isalpha(substr[i])))
 				++i;
+			
 		}
 		else
 			++i;
@@ -627,13 +626,11 @@ int doingproducts(char **strl, char *substr)
 
 	aux = newstr(substr, 1);
 	aux2 = newstr(substr, 0);
-
 	calc(&aux);
 	strcpy(*strl, aux);
 	if (strlen(aux) > 0 && strlen(aux2) > 0)
 		strcat(*strl, "*");
 	strcat(*strl, aux2);
-
 	free(aux);
 	free(aux2);
 	return 1;
@@ -650,7 +647,7 @@ static void splitter(char *s, char **strn, char **strl)
 	while (s[i])
 	{
 		j = i;
-		//while (s[i] && s[i] != '+' && s[i] != '-')
+
 		while (s[i] && ((s[i] != '+' && s[i] != '-') || ((s[i] == '+' || s[i] == '-') && ( i == 0 || s[i-1] != '*'))))
 		{
 			if (s[i] == '(')
@@ -671,7 +668,6 @@ static void splitter(char *s, char **strn, char **strl)
 			{
 				if (substr[0] != '-' && substr[0] != '+')
 					strcat(*strl, "+");
-				printf("   Splitted substr: %s%s%s\n", CYAN, substr, RESET);
 				if (!doingproducts(strl, substr))
 					strcat(*strl, substr);
 			}
@@ -682,7 +678,6 @@ static void splitter(char *s, char **strn, char **strl)
 	}
 	if ((*strl)[0] == '+' && (*strn)[0] == '\0')
 		*strl[0] = ' ';
-
 }
 
 static int check_complex_operators(char *str)
@@ -711,7 +706,7 @@ int transformexpression(char **str)
 	if (!strl)
 		exit(EXIT_FAILURE);
 	
-	printf("   Transforming : %s%s%s\n", CYAN, *str, RESET);
+	if (v_calc) printf("   Transforming : %s%s%s\n", CYAN, *str, RESET);
 	splitter(*str, &strn, &strl);
 	e = calc(&strn);
 	if (!e)
@@ -729,6 +724,7 @@ int transformexpression(char **str)
 	}
 	free(strn);
 	free(strl);
+
 	return e;
 }
 

@@ -7,17 +7,18 @@
 
 typedef struct s_data
 {
-	void 	*mlx;
-	void 	*win;
-	int 	width;
-	int 	height;
-	Display	*display;
-	Window	window;
-	int 	window_destroyed;
-	char	*function;
-	double	zoom;
-	double	offset_x;
-	double	offset_y;
+	void 		*mlx;
+	void 		*win;
+	int 		width;
+	int 		height;
+	Display		*display;
+	Window		window;
+	int 		window_destroyed;
+	char		*function;
+	double		zoom;
+	double		offset_x;
+	double		offset_y;
+	XSizeHints	*size_hints;
 } t_data;
 
 // Window size by default
@@ -41,8 +42,9 @@ typedef struct s_data
 # define Q_KEY			113
 # define q_KEY			81
 
-// Mouse scroll button
+// Mouse buttons
 # define MSCROLL_UP		4
 # define MSCROLL_DOWN	5
+# define MSBTN_LEFT		1
 
 #endif

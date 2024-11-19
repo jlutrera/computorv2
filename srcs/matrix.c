@@ -901,7 +901,8 @@ int calc_with_matrices(char **str)
 				free(result);
 				break;
 			}
-			if (!strchr(result, ','))
+
+			if (!strchr(result, ',') && strchr(result, '['))
 			{
 				result[0] = ' ';
 				result[1] = ' ';

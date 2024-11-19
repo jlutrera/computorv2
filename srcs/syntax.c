@@ -275,7 +275,7 @@ bool	syntax_error_content(char *content, char *token)
 		
 		else if (content[i] == ')')
 		{
-			if (i < last && !strchr("+-*/%^!)", content[i+1]))
+			if (i < last && !strchr("+-*/%^!)#", content[i+1]))
 				return printf_error("Bad syntax", content, i+1);
 		}
 		

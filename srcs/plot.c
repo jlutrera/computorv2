@@ -11,8 +11,7 @@
 /* ************************************************************************** */
 
 #include "plotter.h"
-
-// Función para obtener el tamaño de la ventana 
+ 
 static void get_window_size(Display *display, Window window, int *width, int *height)
 {
 	XWindowAttributes attrs;
@@ -21,6 +20,35 @@ static void get_window_size(Display *display, Window window, int *width, int *he
 	*height = attrs.height;
 }
 
+static void draw_circle_bresenham(void *mlx, void *win, int x0, int y0, int radius, int color)
+{
+    int x = radius;
+    int y = 0;
+    int err = 0;
+
+    while (x >= y)
+    {
+        mlx_pixel_put(mlx, win, x0 + x, y0 + y, color);
+        mlx_pixel_put(mlx, win, x0 + y, y0 + x, color);
+        mlx_pixel_put(mlx, win, x0 - y, y0 + x, color);
+        mlx_pixel_put(mlx, win, x0 - x, y0 + y, color);
+        mlx_pixel_put(mlx, win, x0 - x, y0 - y, color);
+        mlx_pixel_put(mlx, win, x0 - y, y0 - x, color);
+        mlx_pixel_put(mlx, win, x0 + y, y0 - x, color);
+        mlx_pixel_put(mlx, win, x0 + x, y0 - y, color);
+
+        if (err <= 0)
+        {
+            y += 1;
+            err += 2 * y + 1;
+        }
+        if (err > 0)
+        {
+            x -= 1;
+            err -= 2 * x + 1;
+        }
+    }
+}
 static void draw_line_bresenham(void *mlx, void *win, int x0, int y0, int x1, int y1, int color)
 {
 	int dx = abs(x1 - x0);
@@ -59,6 +87,7 @@ static int handle_close(t_data *data)
 		mlx_destroy_window(data->mlx, data->win);
 	}
 	XCloseDisplay(data->display);
+	XFree(data->size_hints);
 	return 0;
 }
 
@@ -70,27 +99,27 @@ static void draw_axes(t_data *data)
 
 	mlx_string_put(data->mlx, data->win, center_x - 10, center_y - 10, P_YELLOW, "0");
 	
-	// Dibujar el eje Y
+	// Dibujar el eje X
 	if (center_y >= 0 && center_y < data->height)
 	{
 		for (int i = 0; i < data->width; i++)
 			mlx_pixel_put(data->mlx, data->win, i, center_y, P_WHITE);
 	}
 
-	// Dibujar el eje X
+	// Dibujar el eje Y
 	if (center_x >= 0 && center_x < data->width)
 	{
 		for (int i = 0; i < data->height; i++)
 			mlx_pixel_put(data->mlx, data->win, center_x, i, P_WHITE);
 	}
 
+	// Ajusta el valor de las marcas según el zoom
 	char label[20];
-	int spacing = 40;  // Ajusta el valor de las marcas según el zoom
+	int spacing = 40;
 
 	// Marcas y etiquetas en el eje X (horizontal)
 	for (int x = center_x + spacing; x < data->width; x += spacing)
 	{
-		// Línea vertical
 		draw_line_bresenham(data->mlx, data->win, x, 0, x, data->height, P_DARKGREY);
 
 		double world_x = (x - center_x) / data->zoom;
@@ -101,7 +130,6 @@ static void draw_axes(t_data *data)
 
 	for (int x = center_x - spacing; x > 0; x -= spacing)
 	{
-		// Línea vertical
 		draw_line_bresenham(data->mlx, data->win, x, 0, x, data->height, P_DARKGREY);
 
 		double world_x = (x - center_x) / data->zoom;
@@ -113,7 +141,6 @@ static void draw_axes(t_data *data)
 	// Marcas y etiquetas en el eje Y (vertical)
 	for (int y = center_y + spacing; y < data->height; y += spacing)
 	{
-		// Línea horizontal
 		draw_line_bresenham(data->mlx, data->win, 0, y, data->width, y, P_DARKGREY);
 
 		double world_y = (center_y - y) / data->zoom;
@@ -124,7 +151,6 @@ static void draw_axes(t_data *data)
 
 	for (int y = center_y - spacing; y > 0; y -= spacing)
 	{
-		// Línea horizontal
 		draw_line_bresenham(data->mlx, data->win, 0, y, data->width, y, P_DARKGREY);
 
 		double world_y = (center_y - y) / data->zoom;
@@ -135,6 +161,8 @@ static void draw_axes(t_data *data)
 }
 
 static int count_x(const char *f)
+// Cuenta el número de veces que aparece la variable x en la función
+// Lo necesito para hacer malloc de la nueva cadena con el valor de x
 {
 	int s = 0;
 	int i = 0;
@@ -178,7 +206,7 @@ static int checkfunction(const char *f)
 		}
 		else
 		{
-			if (!isdigit(f[i]) && !strchr("x+-*/^%!()", f[i]))
+			if (!isdigit(f[i]) && !strchr(".x+-*/^%!()", f[i]))
 				return 1;
 			++i;
 		}
@@ -197,7 +225,7 @@ static double evaluate_function(const char *f, double x, int *error, int s)
 
 	while (f[i] != '\0')
 	{
-		if (f[i] != 'x' || f[i+1] == 'p')
+		if (f[i] != 'x' || f[i+1] == 'p')  //La función exp() tiene x
 		{
 			newf[k] = f[i];
 			++k;
@@ -284,36 +312,53 @@ static void plot_function(t_data *data)
 	}
 }
 
-// Manejador de eventos del ratón para zoom
-static int handle_mouse_scroll(int button, int x, int y, t_data *data)
+static int handle_mouse(int button, int x, int y, t_data *data)
 {
-	(void)x;
-	(void)y;
+	// Zoom in con la rueda del ratón
 	if (button == MSCROLL_UP)
+	{
 		data->zoom += 10;
+		plot_function(data);
+	}
+	// Zoom out con la rueda del ratón
 	else if (button == MSCROLL_DOWN && data->zoom > 10)
+	{
 		data->zoom -= 10;
-	plot_function(data);
+		plot_function(data);
+	}
+	// Muestra las coordenadas del punto en el que se ha hecho click con el botón izquierdo
+	else if (button == MSBTN_LEFT && x >= 0 && x < data->width && y >= 0 && y < data->height)
+    {
+        double graph_x = (x - data->width / 2) / data->zoom + data->offset_x;
+        double graph_y = (data->height / 2 - y) / data->zoom + data->offset_y;
+		draw_circle_bresenham(data->mlx, data->win, x, y, 5, P_GREEN);
+        char coords[50];
+        snprintf(coords, sizeof(coords), "(%.2f, %.2f)", graph_x, graph_y);		
+        mlx_string_put(data->mlx, data->win, x + 20, y -20 , P_CYAN, coords);
+    }
 	return 0;
 }
 
-// Manejador de teclas para zoom
 static int handle_key_press(int keycode, t_data *data)
 {
+	// Cerrar la ventana con la tecla Q o q
 	if (keycode == Q_KEY || keycode == q_KEY)
 	{
 		handle_close(data);
 		return (0);
 	}
+	// Scroll en las cuatro direcciones con las teclas de cursor
 	if (keycode == K_UP)
-		data->offset_y -= 10 / data->zoom; // Ajuste desplazamiento hacia arriba
+		data->offset_y -= 10 / data->zoom;
 	else if (keycode == K_DOWN)
-		data->offset_y += 10 / data->zoom; // Ajuste desplazamiento hacia abajo
+		data->offset_y += 10 / data->zoom;
 	else if (keycode == K_LEFT)
-		data->offset_x += 10 / data->zoom;  // Ajuste desplazamiento a la izquierda
+		data->offset_x += 10 / data->zoom;
     else if (keycode == K_RIGHT)
-		data->offset_x -= 10 / data->zoom; // Ajuste desplazamiento a la derecha
+		data->offset_x -= 10 / data->zoom;
+
 	plot_function(data);
+
 	return (0);
 }
 
@@ -358,14 +403,14 @@ static void draw(char *f)
 	data.window_destroyed = 0;
 
 	// Configura las opciones de tamaño
-	XSizeHints *size_hints = XAllocSizeHints();
-	size_hints->flags = PSize | PMinSize | PMaxSize;
-	size_hints->min_width = 100;   // Tamaño mínimo
-	size_hints->min_height = 100;
-	size_hints->max_width = WIDTH;  // Tamaño máximo
-	size_hints->max_height = HEIGHT;
-	XSetWMNormalHints(data.display, data.window, size_hints);
-	XFree(size_hints);
+	// Esto no parece que funcione en Windows, ¿En Linux?
+	data.size_hints = XAllocSizeHints();
+	data.size_hints->flags = PSize | PMinSize | PMaxSize;
+	data.size_hints->min_width = 100;   // Tamaño mínimo
+	data.size_hints->min_height = 100;
+	data.size_hints->max_width = WIDTH;  // Tamaño máximo
+	data.size_hints->max_height = HEIGHT;
+	XSetWMNormalHints(data.display, data.window, data.size_hints);
 
 	data.function = f;
 	data.zoom = 40;
@@ -378,7 +423,7 @@ static void draw(char *f)
 	mlx_key_hook(data.win, handle_key_press, &data); // Cerrar ventana con tecla Q o q, Zoom con flechas
 	mlx_hook(data.win, 17, 0, handle_close, &data);  // Cerrar ventana con botón "X"
 	mlx_loop_hook(data.mlx, handle_loop, &data);     // Revisa el tamaño de la ventana
-	mlx_mouse_hook(data.win, handle_mouse_scroll, &data); // Zoom con rueda del ratón
+	mlx_mouse_hook(data.win, handle_mouse, &data);   // Eventos de ratón 
 	mlx_loop(data.mlx);
 
 	free(data.mlx);

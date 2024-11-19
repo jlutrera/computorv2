@@ -123,6 +123,7 @@ int complex_calc(char **str)
 	if (!iscomplex(*str))
 		return 0;
 
+	if (v_calc) printf("   Complex calculation : %s%s%s\n", CYAN, *str, RESET);
 	i = strchr(*str, 'i') - (*str);
 	while (i >= 0)
 	{

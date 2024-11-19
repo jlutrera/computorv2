@@ -81,7 +81,6 @@ void calc_with_variables(char **str)
 			remove_spaces(*str);
 		}
 		free(newp);
-		
 		i = strchr(*str, '(') - (*str);
 		while ( ( i == 0 || (i > 0 && !isalpha((*str)[i - 1])) ) )
 		{
@@ -93,6 +92,44 @@ void calc_with_variables(char **str)
 			else if ( (i > 0 && (*str)[i - 1] == '-') &&
 				  ((*str)[j + 1] == '+' || (*str)[j + 1] == '-' || (*str)[j + 1] == '\0') )
 				subtractbrackets(str, i, j);
+			else if ((*str)[j + 1] == '^')
+			{
+				char *exponent;
+				char *base = ft_substr(*str, i, j+1);
+				j += 2;
+				i = j;
+				while (isdigit((*str)[i]) || (*str)[i] == '.')
+					++i;
+				exponent = ft_substr(*str, j, i);
+				if (v_calc) printf("   Base : %s%s%s\n   Exponent : %s%s%s\n", CYAN, base, RESET, CYAN, exponent, RESET);
+				
+				int num_exp = atoi(exponent);
+				char *newstr = (char *)calloc(strlen(*str) * (num_exp + 2)+ 1, sizeof(char));
+				
+				while (num_exp > 1)
+				{
+					strcat(newstr, base);
+					strcat(newstr, "*");
+					--num_exp;
+				}
+				strcat(newstr, base);
+				free(*str);
+				*str = newstr;
+				
+				free(base);
+				free(exponent);
+				remove_spaces(*str);
+			} 
+			else if (( (i > 0 && (*str)[i - 1] == '*') || (*str)[j + 1] == '*' ))
+			{
+				if (!strchr(*str, '+') && !strchr(*str, '-'))
+				{
+					if (v_calc) printf("   Multiplying : %s%s%s\n", CYAN, *str, RESET);
+					calc(str);
+				}
+				else
+					break;
+			}			
 			else
 				break;
 			i = strchr(*str, '(') - (*str);

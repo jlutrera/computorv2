@@ -286,7 +286,14 @@ int	compute(char **s, t_token **list, char *token)
 			if (cvar)
 			{
 				if (strchr(cvar, '('))
-					compute(&cvar, list, token);
+				{
+					if (compute(&cvar, list, token) == 1)
+					{
+						free(cvar);
+						free(var);
+						return 1;
+					}
+				}
 				calc(&cvar);
 				change_content(s, j, k, cvar);
 				i = 0;
