@@ -472,6 +472,20 @@ static bool isanumber(char *s)
 	return false;
 }
 
+static bool thereareonlydigits(char *s)
+{
+	int i;
+
+	i = 0;
+	while (s[i])
+	{
+		if (!isdigit(s[i]) && s[i] != '.' && s[i] != 'i')
+			return false;
+		++i;
+	}
+	return true;
+}
+
 static int detectbrackets(char **str)
 {
 	char 	*substr;
@@ -519,7 +533,7 @@ static int detectbrackets(char **str)
 							break;
 					}
 
-					if (v_calc) printf("+ BRACKET: %s%s%s\n", CYAN, substr, RESET);
+					if (v_calc) printf("%s+ BRACKET: %s%s%s\n", GREEN, CYAN, substr, RESET);
 					if (detectbrackets(&substr) || lookupfunction(&substr))
 					{
 						free(substr);
@@ -535,7 +549,11 @@ static int detectbrackets(char **str)
 					{
 						if (thereareoperations(substr))
 							calc(&substr);
-
+						if (thereareonlydigits(substr) )
+						{
+							--start;
+							++i;
+						}
 						update_result(str, start, i, substr);
 						resolvedoblesigne(str);
 						i = start + strlen(substr);
@@ -549,7 +567,7 @@ static int detectbrackets(char **str)
 						(*str)[i] = ' ';
 						remove_spaces(*str);
 					}
-					if (v_calc) printf("- BRACKET: %s%s%s\n", CYAN, *str, RESET);
+					if (v_calc) printf("%s- BRACKET: %s%s%s\n", GREEN, CYAN, *str, RESET);
 				}
 				++i;
 			}
@@ -571,7 +589,11 @@ static char *newstr(char *substr, int c)
 	while (substr[i])
 	{
 		if ((c && isalpha(substr[i])))
+		{
 			t[i] = ' ';
+			if (strchr("+-", t[i - 1]) )
+				t[i] = '1';
+		}
 		else if (!c && !isalpha(substr[i]) && substr[i] != '*')
 			t[i] = ' ';
 		++i;
@@ -600,8 +622,8 @@ static char *newstr(char *substr, int c)
 
 int doingproducts(char **strl, char *substr)
 {
-	char *aux; //solo números
-	char *aux2; //solo variables (letras)
+	char *aux;   //solo números
+	char *aux2;  //solo variables (letras)
 	int i;
 
 	i = 0;
@@ -648,7 +670,7 @@ static void splitter(char *s, char **strn, char **strl)
 	{
 		j = i;
 
-		while (s[i] && ((s[i] != '+' && s[i] != '-') || ((s[i] == '+' || s[i] == '-') && ( i == 0 || s[i-1] != '*'))))
+		while (s[i] && ((s[i] != '+' && s[i] != '-') || ((s[i] == '+' || s[i] == '-') && ( i == 0))))
 		{
 			if (s[i] == '(')
 			{
@@ -668,8 +690,8 @@ static void splitter(char *s, char **strn, char **strl)
 			{
 				if (substr[0] != '-' && substr[0] != '+')
 					strcat(*strl, "+");
-				if (!doingproducts(strl, substr))
-					strcat(*strl, substr);
+
+				strcat(*strl, substr);
 			}
 			free(substr);
 		}
@@ -708,6 +730,7 @@ int transformexpression(char **str)
 	
 	if (v_calc) printf("   Transforming : %s%s%s\n", CYAN, *str, RESET);
 	splitter(*str, &strn, &strl);
+	if (v_calc) printf("   Numbers     : %s%s%s\n", CYAN, strn, RESET);
 	e = calc(&strn);
 	if (!e)
 		e = complex_calc(&strl);
@@ -720,6 +743,9 @@ int transformexpression(char **str)
 		strcat(*str, strn);
 		if (strlen(strn) > 0 && strlen(strl) > 0 && strl[0] != '+' && strl[0] != '-')
 			strcat(*str, "+");
+		if (strl[0] == '*' || strl[0] == '/')
+			strcat(*str, "1");
+
 		strcat(*str, strl);
 	}
 	free(strn);
@@ -808,7 +834,7 @@ int	calc(char **str)
 	adjustifonlyproducts(str);
 	if (!onlynumbers(*str) && !strchr(*str, '['))
 	{
-		if (v_calc) printf("\nREDUCING : %s%s%s\n", CYAN, *str, RESET);
+		if (v_calc) printf("\n%sREDUCING : %s%s%s\n", GREEN, CYAN, *str, RESET);
 
 		if (strchr(*str, 'i') && check_complex_operators(*str))
 			return 1;

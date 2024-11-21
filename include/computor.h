@@ -22,7 +22,7 @@
 # include <stdbool.h>
 # include <sys/ioctl.h>
 # include <termios.h>
-
+# include <time.h>
 
 # ifdef __APPLE__
 #  include <mlx.h>

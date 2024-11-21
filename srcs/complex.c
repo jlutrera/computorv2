@@ -137,6 +137,7 @@ int complex_calc(char **str)
 		if (v_calc) printf("   Complex result : %s%s%s\n", CYAN, *str, RESET);
 		i = strchr(*str + i + 1, 'i') - (*str);
 	}
-	doingproducts(str, *str);
+	if (strchr(*str, '*'))
+		doingproducts(str, *str);
 	return 0;
 }

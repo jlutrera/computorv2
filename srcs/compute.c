@@ -12,6 +12,16 @@
 
 #include "computor.h"
 
+static bool brackets_is_needed(char *s, int len_dest)
+{
+	bool 	need_brackets;
+	int i = strchr(s, '+') - s;
+	int j = strchr(s, '-') - s;
+	need_brackets = (s[0] != '[' || s[len_dest - 1] != ']') && (i >= 0 || j >= 0);
+	
+	return need_brackets;
+}
+
 static int change_content(char **s, int j, int i, char *dest)
 {
 	int		len_s;
@@ -33,7 +43,7 @@ static int change_content(char **s, int j, int i, char *dest)
 
 	var_to_change = ft_substr(*s, j, i);
 
-	if (v_calc) printf("REPLACING %s%s%s for %s%s%s in %s%s%s\n", CYAN, dest, RESET, CYAN, var_to_change, RESET, CYAN, *s, RESET);
+	if (v_calc) printf("%sREPLACING %s%s%s for %s%s%s in %s%s%s\n", GREEN , CYAN, dest, RESET, CYAN, var_to_change, RESET, CYAN, *s, RESET);
 
 	while (check_brackets(var_to_change))
 	{
@@ -48,7 +58,7 @@ static int change_content(char **s, int j, int i, char *dest)
 
 	free(var_to_change);
 	if (j > 0 && isdigit((*s)[j-1]))
-		++extra; // añado *()
+		++extra;
 
 	new_len = len_s - (i - j) + len_dest + 2 + extra;
 	new_str = (char *)calloc((new_len + 1), sizeof(char));
@@ -59,13 +69,13 @@ static int change_content(char **s, int j, int i, char *dest)
 	if (extra)
 		new_str[j++] = '*';
 
-	if (dest[0] != '[' || dest[len_dest - 1] != ']')
+	if (brackets_is_needed(dest, len_dest))
 	{
 		new_str[j++] = '(';
 		++extra;
 	}
 	strcat(new_str, dest);
-	if (dest[0] != '[' || dest[len_dest - 1] != ']')
+	if (brackets_is_needed(dest, len_dest))
 	{
 		strcat(new_str, ")");
 		++extra;
@@ -74,7 +84,7 @@ static int change_content(char **s, int j, int i, char *dest)
 	remove_spaces(new_str);
 	free(*s);
 	*s = new_str;
-	if (v_calc) printf("NEW STRING: %s%s%s\n", CYAN, *s, RESET);
+	if (v_calc) printf("   Result : %s%s%s\n", CYAN, *s, RESET);
 	return (extra);
 }
 
@@ -285,16 +295,19 @@ int	compute(char **s, t_token **list, char *token)
 			cvar = search_content_in_functions(var, list);
 			if (cvar)
 			{
-				if (strchr(cvar, '('))
+				if (strchr(cvar, '(') && compute(&cvar, list, token) == 1)
 				{
-					if (compute(&cvar, list, token) == 1)
-					{
-						free(cvar);
-						free(var);
-						return 1;
-					}
+					free(cvar);
+					free(var);
+					return 1;
 				}
-				calc(&cvar);
+				
+				if (!strchr(cvar, '(') && calc(&cvar) == 1)
+				{
+					free(var);
+					free(cvar);
+					return 1;
+				}
 				change_content(s, j, k, cvar);
 				i = 0;
 				free(cvar);

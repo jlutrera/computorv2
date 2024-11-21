@@ -14,7 +14,11 @@
 
 void	splash(void)
 {
-	printf("\x1b[33m\n");
+	const char *colors[] = {GREEN, YELLOW, CYAN, RED};
+	srand((unsigned)time(NULL));
+    const char *random_color = colors[rand() % 4];
+
+	printf("%s\n",random_color);
 	printf("\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n");
 	printf("\u2502   \u2587\u2587                    \u2587                      \u2502\n");
 	printf("\u2502  \u2587   jutrera-\u00A9         \u2587\u2587\u2587                 \u2587\u2587\u2587 \u2502\n");
@@ -25,7 +29,7 @@ void	splash(void)
 	printf("\u2502                 \u2587                              \u2502\n");
 	printf("\u2502                 \u2587                              \u2502\n");
 	printf("\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n");
-	printf("\x1b[0m");
+	printf("%s", RESET);
 	printf("  If you need, type \"help\"");
 	if (v_calc)
 		printf(" (Visual mode %sON%s)\n\n", GREEN, RESET);

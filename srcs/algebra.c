@@ -97,11 +97,15 @@ void calc_with_variables(char **str)
 				char *exponent;
 				char *base = ft_substr(*str, i, j+1);
 				j += 2;
-				i = j;
-				while (isdigit((*str)[i]) || (*str)[i] == '.')
-					++i;
-				exponent = ft_substr(*str, j, i);
-				if (v_calc) printf("   Base : %s%s%s\n   Exponent : %s%s%s\n", CYAN, base, RESET, CYAN, exponent, RESET);
+				int k = j;
+				while (isdigit((*str)[k]) || (*str)[k] == '.')
+					++k;
+				exponent = ft_substr(*str, j, k);
+				if (!strchr(base, '+') && !strchr(base, '-'))
+				{
+					base[0] = ' ';
+					base[strlen(base) - 1] = ' ';
+				}
 				
 				int num_exp = atoi(exponent);
 				char *newstr = (char *)calloc(strlen(*str) * (num_exp + 2)+ 1, sizeof(char));
@@ -113,11 +117,20 @@ void calc_with_variables(char **str)
 					--num_exp;
 				}
 				strcat(newstr, base);
+		
+				char *aux = (char *)calloc(100, sizeof(char));
+				if (!aux)
+					exit(EXIT_FAILURE);
+				strncpy(aux, *str, i);
+				strcat(aux, newstr);
+				strcat(aux, *str + j + 1);
+
 				free(*str);
-				*str = newstr;
+				*str = aux;
 				
 				free(base);
 				free(exponent);
+				free(newstr);
 				remove_spaces(*str);
 			} 
 			else if (( (i > 0 && (*str)[i - 1] == '*') || (*str)[j + 1] == '*' ))
