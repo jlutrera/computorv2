@@ -54,7 +54,6 @@ RM 			= 	rm -rf
 all			: 	$(NAME)
 
 # Compile object files
-
 $(OBJDIR)/%.o: 	$(SRCDIR)/%.c
 				@mkdir -p $(dir $@)
 				@printf "Compiling $(YELLOW)$<$(RESET)\r"

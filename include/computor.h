@@ -23,7 +23,6 @@
 # include <sys/ioctl.h>
 # include <termios.h>
 # include <time.h>
-# include "../mlx/include/mlx.h"
 
 # define PI				3.141592653589793
 # define E				2.718281828459045
@@ -46,7 +45,7 @@ typedef enum	e_token_type
 	RATIONAL,
 	COMPLEX,
 	ALGEBRAIC
-} 	t_type;
+} 				t_type;
 
 typedef struct s_token
 {
@@ -55,7 +54,7 @@ typedef struct s_token
 	t_type			type;
 	struct s_token	*next;
 
-}	t_token;
+}				t_token;
 
 extern bool	v_calc; // variable global para visualizar las operaciones
 extern bool	plotting; // variable global para evitar que se muestren resultados y errores al dibujar
