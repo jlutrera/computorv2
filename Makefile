@@ -33,11 +33,7 @@ SRCS		=	./srcs/algebra.c \
 				./srcs/types.c \
 				./srcs/utils.c
 
-ifeq ($(shell uname -s), Darwin)
-	MLXFLAG = -lmlx -framework OpenGL -framework AppKit
-else
-	MLXFLAG	= -Lusr/lib -Lmlx_linux -lmlx -lXext -lX11 -lm -lbsd -Imlx_linux
-endif
+MLXFLAG	= -Lusr/lib -Lmlx -lmlx -lXext -lX11 -lm -lbsd -Imlx
 
 # Object files
 OBJS 		= 	$(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))

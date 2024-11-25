@@ -23,12 +23,7 @@
 # include <sys/ioctl.h>
 # include <termios.h>
 # include <time.h>
-
-# ifdef __APPLE__
-#  include <mlx.h>
-# else
-#  include "../mlx_linux/mlx.h"
-# endif
+# include "../mlx/include/mlx.h"
 
 # define PI				3.141592653589793
 # define E				2.718281828459045
