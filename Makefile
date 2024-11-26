@@ -2,9 +2,9 @@
 NAME 		=	computor
 
 # Project directories
-SRCDIR 		=	./srcs
-INCDIR 		=	./include
-OBJDIR 		=	./obj
+S_DIR 		=	./srcs
+I_DIR 		=	./include
+O_DIR 		=	./obj
 
 # Compiler and flags
 CC 			=	gcc
@@ -12,6 +12,7 @@ CFLAGS 		=	-Wall -Wextra -Werror
 LEAKS 		=	-fsanitize=address -g
 LDFLAGS 	=	-lreadline
 DEPFLAGS 	=	-MMD -MP  # Flags to generate dependency files
+MLXFLAG		=	-Lusr/lib -Lmlx -lmlx -lXext -lX11 -lm -lbsd -Imlx
 
 # Source files
 SRCS		=	./srcs/algebra.c \
@@ -33,10 +34,8 @@ SRCS		=	./srcs/algebra.c \
 				./srcs/types.c \
 				./srcs/utils.c
 
-MLXFLAG	= -Lusr/lib -Lmlx -lmlx -lXext -lX11 -lm -lbsd -Imlx
-
 # Object files
-OBJS 		= 	$(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(SRCS))
+OBJS 		= 	$(patsubst $(S_DIR)/%.c, $(O_DIR)/%.o, $(SRCS))
 
 # Dependency files
 DEPS 		= 	$(OBJS:.o=.d)
@@ -54,10 +53,10 @@ RM 			= 	rm -rf
 all			: 	$(NAME)
 
 # Compile object files
-$(OBJDIR)/%.o: 	$(SRCDIR)/%.c
+$(O_DIR)/%.o: 	$(S_DIR)/%.c
 				@mkdir -p $(dir $@)
 				@printf "Compiling $(YELLOW)$<$(RESET)\r"
-				@$(CC) $(CFLAGS) $(LEAKS) $(DEPFLAGS) -I$(INCDIR) -c $< -o $@
+				@$(CC) $(CFLAGS) $(LEAKS) $(DEPFLAGS) -I$(I_DIR) -c $< -o $@
 				@printf "                                                                         \r"
 
 # Link program
@@ -71,7 +70,7 @@ $(NAME)		: 	$(OBJS)
 # Clean object files
 clean		:
 				@echo "$(RED)Deleting object files...$(RESET)\c"
-				@$(RM) $(OBJDIR)
+				@$(RM) $(O_DIR)
 				@echo "$(GREEN) all object files DELETED !$(RESET)"
 
 # Clean everything and recompile
