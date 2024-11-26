@@ -549,7 +549,7 @@ static int detectbrackets(char **str)
 					{
 						if (thereareoperations(substr))
 							calc(&substr);
-						if (thereareonlydigits(substr) )
+						if (start == 1 || (thereareonlydigits(substr) && start > 1 && !isalpha((*str)[start - 2])))
 						{
 							--start;
 							++i;
