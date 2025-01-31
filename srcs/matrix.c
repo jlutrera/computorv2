@@ -592,7 +592,7 @@ static char *matrixcalc(char *str, int *error)
 
 	i = strchr(str, '[') - str;
 	j = i;
-
+	printf("string = %s\n", str);
 	while (str[j])
 	{
 		if (str[j] == ']' && str[j - 1] == ']')
@@ -859,6 +859,21 @@ static char *matrixcalc(char *str, int *error)
 	return NULL;
 }
 
+static void ft_sustituye(char **str, char *aux, int j, int k)
+{
+	char *newstr;
+
+	newstr = (char *)calloc((strlen(*str) - k + j + strlen(aux) + 1), sizeof(char));
+	if (!newstr)
+		exit(EXIT_FAILURE);
+	strncpy(newstr, *str, j);
+	strcat(newstr, aux);
+	if (k < (int)strlen(*str))
+		strcat(newstr, *str + k);
+	free(*str);
+	*str = newstr;
+}
+
 int calc_with_matrices(char **str)
 {
 	int		error = 0;
@@ -894,7 +909,16 @@ int calc_with_matrices(char **str)
 			else
 				free(readdigitbefore(*str, i, &j));
 			aux = ft_substr(*str, j, k);
-			result = matrixcalc(aux, &error);
+			if (strchr(aux, '['))
+				result = matrixcalc(aux, &error);
+			else
+			{
+				calc(&aux);
+				ft_sustituye(str, aux, j, k);
+				free(aux);
+				continue;
+			}
+
 			if (error)
 			{
 				free(aux);

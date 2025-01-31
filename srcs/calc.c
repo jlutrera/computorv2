@@ -560,7 +560,7 @@ static int detectbrackets(char **str)
 					}
 
 					free(substr);
-					if (strchr(*str, '['))
+					if (strchr(*str, '[') && strchr(*str, ')'))
 					{
 						i = strchr(*str, ')') - *str;
 						(*str)[start - 1] = ' ';
