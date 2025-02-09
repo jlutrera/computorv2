@@ -12,7 +12,6 @@
 
 #include "computor.h"
 
-
 static void	str_to_lower(char *s)
 {
 	int	i;
@@ -61,6 +60,9 @@ static void	add_token_to_list(t_token **list, char *token, char *content)
 	t_token	*ptr;
 	char 	*cpycontent;
 	char 	*cpytoken;
+	char 	*functionname_cpytoken;
+	char	*functionname;
+	bool	foundsamefunction;
 
 	new_token = (t_token *)calloc(sizeof(t_token), 1);
 	if (!new_token)
@@ -68,6 +70,10 @@ static void	add_token_to_list(t_token **list, char *token, char *content)
 
 	cpycontent = ft_substr(content, 0, strlen(content));
 	cpytoken = ft_substr(token, 0, strlen(token));
+	if (strchr(cpytoken, '('))
+	{
+		functionname_cpytoken = ft_substr(cpytoken, 0, strchr(cpytoken, '(') - cpytoken);
+	}
 	new_token->token = cpytoken;
 	new_token->content = cpycontent;
 
@@ -77,23 +83,36 @@ static void	add_token_to_list(t_token **list, char *token, char *content)
 	{
 		//Busco un token en la lista
 		ptr = *list;
-		while (ptr && strcmp(ptr->token, cpytoken))
+		while (ptr)
+		{
+			if (!strcmp(ptr->token, cpytoken))
+				break;
+			if (strchr(ptr->token, '(') && strchr(cpytoken, '('))
+			{
+				functionname = ft_substr(ptr->token, 0, strchr(ptr->token, '(') - ptr->token);
+				foundsamefunction =  !strcmp(functionname, functionname_cpytoken);
+				free(functionname);
+				if (foundsamefunction)
+					break;
+			}
 			ptr = ptr->next;
+		}
+		
 		//Si existe reemplazo su contenido
 		if (ptr)
 		{
+			free(new_token);
 			free(ptr->content);
 			ptr->content = cpycontent;
-			free(cpytoken);
-			free(new_token);
+			free(ptr->token);
+			ptr->token = cpytoken;
 		}
 		else
 			ft_token_add_back(list, new_token);
 	}
-	token_type(list);
+	if (strchr(cpytoken, '('))
+		free(functionname_cpytoken);
 }
-
-
 
 static bool execute_command(char *newinput, t_token **token_list)
 {
@@ -111,9 +130,6 @@ static bool execute_command(char *newinput, t_token **token_list)
 
 	if (help(newinput))
 		return 1;
-
-	if (types(newinput, token_list))
-		return 1;
 	
 	if (!strcmp(newinput, "clear"))
 	{
@@ -124,13 +140,13 @@ static bool execute_command(char *newinput, t_token **token_list)
 	if (!strcmp(newinput, "visual on"))
 	{
 		v_calc = 1;
-		printf("Visual mode %sON%s\n", GREEN, RESET);
+		printf("   Visual mode %sON%s\n", GREEN, RESET);
 		return 1;
 	}
 	if (!strcmp(newinput, "visual off"))
 	{
 		v_calc = 0;
-		printf("Visual mode %sOFF%s\n", RED, RESET);
+		printf("   Visual mode %sOFF%s\n", RED, RESET);
 		return 1;
 	}
 	return 0;

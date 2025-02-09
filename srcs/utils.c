@@ -12,7 +12,6 @@
 
 #include "computor.h"
 
-
 int onlydigits(char *s)
 {
 	int i;
@@ -253,76 +252,4 @@ void	free_tokens(t_token **token_list)
 		}
 		*token_list = NULL;
 	}
-}
-
-void	token_type(t_token **list)
-{
-	char	*content_temp;
-	t_token	*ptr;
-	char	*aux;
-	int		i;
-	int		j;
-	bool	typed;
-	bool	vc;
-
-	ptr = *list;
-	//guardamos el valor de v_calc y
-	vc = v_calc;
-
-	//evitamos que se muestren los cálculos de nuevo
-	v_calc = false;
-	while (ptr)
-	{
-		typed  = false;
-		if (strchr(ptr->token, ')'))
-			ptr->type = FUNCTION;
-		else
-		{
-			content_temp = ft_substr(ptr->content, 0, strlen(ptr->content));
-			
-			if (compute(&content_temp, list, NULL) != 0)
-			{
-				free(content_temp);
-				return;
-			}
-			if (strchr(content_temp, '['))
-				ptr->type = MATRIX;	
-			else
-			{
-				i = 0;
-				while (content_temp[i] != '\0')
-				{
-					j = i;
-					while (content_temp[i] && isalpha(content_temp[i]))
-						++i;
-					if (i - j == 1 && content_temp[j] == 'i')
-					{
-						ptr->type = COMPLEX;
-						typed = true;
-						break;
-					}
-					else if (j != i)
-					{
-						aux = ft_substr(content_temp, j, i);
-						if (!isfunctionword(aux))
-						{
-							ptr->type = ALGEBRAIC;
-							free(aux);
-							typed = true;
-							break;
-						}
-						free(aux);
-					}
-					else if (j == i)
-						++i;
-				}
-				if (!typed)
-					ptr->type = RATIONAL;
-			}
-			free(content_temp);
-		}
-		ptr = ptr->next;
-	}
-	//restauramos el valor de v_calc
-	v_calc = vc;
 }

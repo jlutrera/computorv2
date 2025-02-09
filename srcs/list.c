@@ -12,7 +12,6 @@
 
 #include "computor.h"
 
-
 static void	listone(char *token, t_token **list)
 {
 	t_token	*ptr;

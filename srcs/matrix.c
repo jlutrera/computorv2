@@ -313,7 +313,7 @@ void	print_matrix(char ***matrix, int r, int c)
 			if (maxlen[columns] < strlen(matrix[rows][columns]))
 				maxlen[columns] = strlen(matrix[rows][columns]);
 
-	printf("\u250C ");
+	printf("   \u250C ");
 	for (int columns = 0; columns < c-1; columns++)
 		print_spaces(maxlen[columns] + 2);
 	print_spaces(maxlen[c - 1] + 1);
@@ -321,7 +321,7 @@ void	print_matrix(char ***matrix, int r, int c)
 
 	for (int rows = 0; rows < r; rows++)
 	{
-		printf("\u2502 ");
+		printf("   \u2502 ");
 		for (int columns = 0; columns < c-1; columns++)
 		{
 			print_spaces(maxlen[columns] - strlen(matrix[rows][columns]));
@@ -332,7 +332,7 @@ void	print_matrix(char ***matrix, int r, int c)
 		printf(" \u2502\n");
 	}
 
-	printf("\u2514 ");
+	printf("   \u2514 ");
 	for (int columns = 0; columns < c-1; columns++)
 		print_spaces(maxlen[columns] + 2);
 	print_spaces(maxlen[c - 1] + 1);
@@ -592,7 +592,6 @@ static char *matrixcalc(char *str, int *error)
 
 	i = strchr(str, '[') - str;
 	j = i;
-	printf("string = %s\n", str);
 	while (str[j])
 	{
 		if (str[j] == ']' && str[j - 1] == ']')
@@ -918,7 +917,6 @@ int calc_with_matrices(char **str)
 				free(aux);
 				continue;
 			}
-
 			if (error)
 			{
 				free(aux);
@@ -934,7 +932,6 @@ int calc_with_matrices(char **str)
 				result[strlen(result) - 2] = ' ';
 				result = ft_trim(result);
 			}
-			
 			if (v_calc) printf("   Result = %s%s%s\n", GREEN, result, RESET);
 			
 			newstr = (char *)calloc((strlen(*str) - k + j + strlen(result) + 1), sizeof(char));

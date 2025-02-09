@@ -23,6 +23,8 @@
 # include <sys/ioctl.h>
 # include <termios.h>
 # include <time.h>
+# include <ctype.h>
+# include <string.h>
 
 # define PI				3.141592653589793
 # define E				2.718281828459045
@@ -38,20 +40,10 @@
 # define RED			"\033[1;31m"
 # define RESET			"\033[0m"
 
-typedef enum	e_token_type
-{
-	MATRIX,
-	FUNCTION,
-	RATIONAL,
-	COMPLEX,
-	ALGEBRAIC
-} 				t_type;
-
 typedef struct s_token
 {
 	char			*token;
 	char			*content;
-	t_type			type;
 	struct s_token	*next;
 
 }				t_token;
@@ -61,13 +53,9 @@ extern bool	plotting; // variable global para evitar que se muestren resultados 
 
 // algebra.c
 void	calc_with_variables(char **str);
-int 	complex_calc(char **str);
 // calc.c
 int		calc(char **str);
-int 	doingproducts(char **strl, char *substr);
-int 	transformexpression(char **str);
-// complex.c
-int		complex_calc(char **str);
+//int 	doingproducts(char **strl, char *substr);
 // compute.c
 int 	compute(char **content, t_token **list, char *token);
 // delete.c
@@ -117,8 +105,6 @@ void	splash(void);
 bool	syntax_error_token(char *token);
 bool 	syntax_error_content(char *content, char *token);
 bool	syntax_error_equation(char *str);
-// types.c
-bool 	types(char *content, t_token **list);
 // utils.c
 char	*doubletostr(double d);
 char	*ft_trim(char *str);
@@ -131,7 +117,6 @@ bool	bad_letters(char *s);
 bool	check_brackets(char *content);
 bool	isfunctionword(char *token);
 void	free_tokens(t_token **token_list);
-void	token_type(t_token **list);
 int 	onlydigits(char *s);
 
 #endif

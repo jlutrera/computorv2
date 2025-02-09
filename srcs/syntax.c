@@ -17,8 +17,7 @@ static bool iscommandword(char *token)
 	if (!strcmp(token, "list") || !strcmp(token, "exit")   ||
 		!strcmp(token, "solve")|| !strcmp(token, "delete") ||
 		!strcmp(token, "help") || !strcmp(token, "plot")   ||
-		!strcmp(token, "type") || !strcmp(token, "clear")  ||
-		!strcmp(token, "visual"))
+		!strcmp(token, "clear")|| !strcmp(token, "visual"))
 			return 1;
 
 	return 0;

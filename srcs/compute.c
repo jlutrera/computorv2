@@ -244,17 +244,20 @@ int	compute(char **s, t_token **list, char *token)
 
 	variable[0] = '\0';
 	variable[1] = '\0';
-	i = 0;
-	j = 0;
-	while ((*s)[i])
-	{
-		if ((*s)[i] == '(')
-			j = i;
-		++i;
-	}
-	if (j != 0)
-		variable[0] = (*s)[j + 1];
 
+	if (token)
+	{
+		i = 0;
+		j = 0;
+		while ((*s)[i])
+		{
+			if ((*s)[i] == '(')
+				j = i;
+			++i;
+		}
+		if (j != 0)
+			variable[0] = (*s)[j + 1];
+	}
 	i = 0;
 	while ((*s)[i])
 	{

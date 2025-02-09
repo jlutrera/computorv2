@@ -542,9 +542,9 @@ static int detectbrackets(char **str)
 
 					if (!onlynumbers(substr) && !strchr(substr, '(')) 
 					{
-						transformexpression(&substr);
-						update_result(str, start, i, substr);
+						calc_with_variables(&substr);
 					}
+					
 					else if (onlynumbers(substr))
 					{
 						if (thereareoperations(substr))
@@ -576,131 +576,87 @@ static int detectbrackets(char **str)
 	return lookupfunction(str);
 }
 
-static char *newstr(char *substr, int c)
-{
-	int		i;
-	char	*t;
+// static char *newstr(char *substr, int c)
+// {
+// 	int		i;
+// 	char	*t;
 
-	t = (char *)calloc(strlen(substr) + 1, sizeof(char));
-	if (!t)
-		exit(EXIT_FAILURE);
-	strcpy(t, substr);
-	i = 0;
-	while (substr[i])
-	{
-		if ((c && isalpha(substr[i])))
-		{
-			t[i] = ' ';
-			if (strchr("+-", t[i - 1]) )
-				t[i] = '1';
-		}
-		else if (!c && !isalpha(substr[i]) && substr[i] != '*')
-			t[i] = ' ';
-		++i;
-	}
-	remove_spaces(t);
-	while (strlen(t) > 0 && t[strlen(t) - 1] == '*')
-	{
-		t[strlen(t) - 1] = ' ';
-		remove_spaces(t);
-	}
-	while (t[0] == '*')
-	{
-		t[0] = ' ';
-		remove_spaces(t);
-	}
-	i = 0;
-	while (t[i])
-	{
-		if (i < (int)strlen(t) && t[i] == '*' && (t[i + 1] == '*' || t[i + 1] == ')'))
-			t[i] = ' ';
-		++i;
-	}
-	remove_spaces(t);
-	return (t);
-}
+// 	t = (char *)calloc(strlen(substr) + 1, sizeof(char));
+// 	if (!t)
+// 		exit(EXIT_FAILURE);
+// 	strcpy(t, substr);
+// 	i = 0;
+// 	while (substr[i])
+// 	{
+// 		if ((c && isalpha(substr[i])))
+// 		{
+// 			t[i] = ' ';
+// 			if (strchr("+-", t[i - 1]) )
+// 				t[i] = '1';
+// 		}
+// 		else if (!c && !isalpha(substr[i]) && substr[i] != '*')
+// 			t[i] = ' ';
+// 		++i;
+// 	}
+// 	remove_spaces(t);
+// 	while (strlen(t) > 0 && t[strlen(t) - 1] == '*')
+// 	{
+// 		t[strlen(t) - 1] = ' ';
+// 		remove_spaces(t);
+// 	}
+// 	while (t[0] == '*')
+// 	{
+// 		t[0] = ' ';
+// 		remove_spaces(t);
+// 	}
+// 	i = 0;
+// 	while (t[i])
+// 	{
+// 		if (i < (int)strlen(t) && t[i] == '*' && (t[i + 1] == '*' || t[i + 1] == ')'))
+// 			t[i] = ' ';
+// 		++i;
+// 	}
+// 	remove_spaces(t);
+// 	return (t);
+// }
 
-int doingproducts(char **strl, char *substr)
-{
-	char *aux;   //solo números
-	char *aux2;  //solo variables (letras)
-	int i;
+// int doingproducts(char **strl, char *substr)
+// {
+// 	char *aux;   //solo números
+// 	char *aux2;  //solo variables (letras)
+// 	int i;
 
-	i = 0;
-	while (substr[i] && (strchr("*.()+-",substr[i]) || isdigit(substr[i]) || isalpha(substr[i])))
-	{
-		if (strchr("+-", substr[i]) && (i > 0 && substr[i - 1] != '*'))
-			break;
-		if (substr[i] == '(')
-		{
-			++i;
-			if (substr[i] == '-' || substr[i] == '+')
-				++i;
-			while (substr[i] != ')' && (substr[i] == '.' || isdigit(substr[i]) || isalpha(substr[i])))
-				++i;
+// 	i = 0;
+// 	while (substr[i] && (strchr("*.()+-",substr[i]) || isdigit(substr[i]) || isalpha(substr[i])))
+// 	{
+// 		if (strchr("+-", substr[i]) && (i > 0 && substr[i - 1] != '*'))
+// 			break;
+// 		if (substr[i] == '(')
+// 		{
+// 			++i;
+// 			if (substr[i] == '-' || substr[i] == '+')
+// 				++i;
+// 			while (substr[i] != ')' && (substr[i] == '.' || isdigit(substr[i]) || isalpha(substr[i])))
+// 				++i;
 			
-		}
-		else
-			++i;
-	}
-	if (substr[i] != '\0')
-		return 0;
+// 		}
+// 		else
+// 			++i;
+// 	}
+// 	if (substr[i] != '\0')
+// 		return 0;
 
-	aux = newstr(substr, 1);
-	aux2 = newstr(substr, 0);
-	calc(&aux);
-	strcpy(*strl, aux);
-	if (strlen(aux) > 0 && strlen(aux2) > 0)
-		strcat(*strl, "*");
-	strcat(*strl, aux2);
-	free(aux);
-	free(aux2);
-	return 1;
-}
-
-static void splitter(char *s, char **strn, char **strl)
-{
-	int 	i;
-	int		j;
-	char	*substr;
-
-
-	i = 0;
-	while (s[i])
-	{
-		j = i;
-
-		while (s[i] && ((s[i] != '+' && s[i] != '-') || ((s[i] == '+' || s[i] == '-') && ( i == 0))))
-		{
-			if (s[i] == '(')
-			{
-				while (s[i] && s[i] != ')')
-					++i;
-			}
-			++i;
-		}
-		if (j !=i)
-		{
-			if (j > 0)
-				--j;
-			substr = ft_substr(s, j, i);
-			if (onlynumbers(substr))
-				strcat(*strn, substr);
-			else
-			{
-				if (substr[0] != '-' && substr[0] != '+')
-					strcat(*strl, "+");
-
-				strcat(*strl, substr);
-			}
-			free(substr);
-		}
-		else if (s[i])
-			++i;
-	}
-	if ((*strl)[0] == '+' && (*strn)[0] == '\0')
-		*strl[0] = ' ';
-}
+// 	aux = newstr(substr, 1);
+// 	aux2 = newstr(substr, 0);
+// 	calc(&aux);
+// 	strcpy(*strl, aux);
+// 	if (strlen(aux) > 0 && strlen(aux2) > 0)
+// 		strcat(*strl, "*");
+// 	strcat(*strl, aux2);
+// 	free(aux);
+// 	free(aux2);
+// 	return 1;
+// }
 
 static int check_complex_operators(char *str)
 {
@@ -713,45 +669,6 @@ static int check_complex_operators(char *str)
 	
 	if (v_calc) printf("   Checking Complex operators in : %s%s%s (%sOK%s)\n", CYAN, str, RESET, GREEN, RESET);
 	return 0;
-}
-
-int transformexpression(char **str)
-{
-	char 	*strn;
-	char 	*strl;
-	int		e;
-	
-	strn = (char *)calloc((strlen(*str) +1 )*2, sizeof(char));
-	if (!strn)
-		exit(EXIT_FAILURE);
-	strl = (char *)calloc((strlen(*str) + 1)*2, sizeof(char));
-	if (!strl)
-		exit(EXIT_FAILURE);
-	
-	if (v_calc) printf("   Transforming : %s%s%s\n", CYAN, *str, RESET);
-	splitter(*str, &strn, &strl);
-	if (v_calc) printf("   Numbers     : %s%s%s\n", CYAN, strn, RESET);
-	e = calc(&strn);
-	if (!e)
-		e = complex_calc(&strl);
-	if (!e)
-	{
-		free(*str);
-		*str = (char *)calloc(strlen(strn) + strlen(strl) + 2, sizeof(char));
-		if (!*str)
-			exit(EXIT_FAILURE);
-		strcat(*str, strn);
-		if (strlen(strn) > 0 && strlen(strl) > 0 && strl[0] != '+' && strl[0] != '-')
-			strcat(*str, "+");
-		if (strl[0] == '*' || strl[0] == '/')
-			strcat(*str, "1");
-
-		strcat(*str, strl);
-	}
-	free(strn);
-	free(strl);
-
-	return e;
 }
 
 void adjustifonlyproducts(char **s)
@@ -835,20 +752,19 @@ int	calc(char **str)
 	if (!onlynumbers(*str) && !strchr(*str, '['))
 	{
 		if (v_calc) printf("\n%sREDUCING : %s%s%s\n", GREEN, CYAN, *str, RESET);
-
 		if (strchr(*str, 'i') && check_complex_operators(*str))
 			return 1;
-
 		calc_with_variables(str);
-
-		if (onlynumbers(*str) && thereareoperations(*str) && !strchr(*str, '['))
-			calc(str);
-
 		return 0;
 	}
 	
 	if (strchr(*str, '['))
 	{
+		if (!onlydigits(*str))
+		{
+			printf("   Hay que separar los números de las variables\n");
+			return 0;
+		}
 		e = calc_with_matrices(str);
 		if (strchr(*str, '['))
 			return e;
