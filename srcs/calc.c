@@ -748,8 +748,8 @@ int	calc(char **str)
 	if (!e)
 		resolvedoblesigne(str);
 
-	adjustifonlyproducts(str);
-	if (!onlynumbers(*str) && !strchr(*str, '['))
+	//adjustifonlyproducts(str);
+	if (!onlynumbers(*str) /*&& !strchr(*str, '[')*/)
 	{
 		if (v_calc) printf("\n%sREDUCING : %s%s%s\n", GREEN, CYAN, *str, RESET);
 		if (strchr(*str, 'i') && check_complex_operators(*str))

@@ -258,6 +258,7 @@ int	compute(char **s, t_token **list, char *token)
 		if (j != 0)
 			variable[0] = (*s)[j + 1];
 	}
+
 	i = 0;
 	while ((*s)[i])
 	{
@@ -293,24 +294,18 @@ int	compute(char **s, t_token **list, char *token)
 			b = 1;
 			while ((*s)[++k] && b != 0)
 				b = b + ((*s)[k] == '(') - ((*s)[k] == ')');
-
 			var = ft_substr(*s, j, k);
 			cvar = search_content_in_functions(var, list);
 			if (cvar)
 			{
-				if (strchr(cvar, '(') && compute(&cvar, list, token) == 1)
+				if (( strchr(cvar, '(') && compute(&cvar, list, token) == 1) ||
+				    (!strchr(cvar, '(') && compute(&cvar, list, NULL)  == 1))
 				{
 					free(cvar);
 					free(var);
 					return 1;
 				}
-				
-				if (!strchr(cvar, '(') && calc(&cvar) == 1)
-				{
-					free(var);
-					free(cvar);
-					return 1;
-				}
+
 				change_content(s, j, k, cvar);
 				i = 0;
 				free(cvar);
