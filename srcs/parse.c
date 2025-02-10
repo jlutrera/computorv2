@@ -312,9 +312,13 @@ int parse(char **input, t_token **token_list)
 	{
 		cpytoken = ft_substr(token, 0, strlen(token));			
 		response = ft_substr(content, 0, strlen(content));
+		printf("response = %s\n",response);
 		if (compute(&response, token_list, cpytoken) == 0)
 		{
 			add_token_to_list(token_list, token, content);
+			printf("cpytoken = %s\n", cpytoken);
+			printf("content = %s\n", content);
+			
 			ft_add_history(cpytoken, content, response);
 			print_result(response);
 		}

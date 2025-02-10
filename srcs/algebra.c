@@ -599,6 +599,11 @@ void calc_with_variables(char **str)
 		}
 	}
 	char *aux = algebraic_calc(*str);
-	free(*str);
-	*str = aux;
+	if (strcmp(aux, *str))
+	{
+		free(*str);
+		*str = aux;
+	}
+	else
+		free(aux);
 }
