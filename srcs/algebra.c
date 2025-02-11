@@ -330,7 +330,6 @@ char *algebraic_calc(char *s)
 		exit(1);
 	}
 	strcat(new_s, s);
-
 	while (1)
 	{
 		int p = strchr(new_s, '*') - new_s;
@@ -381,6 +380,21 @@ char *algebraic_calc(char *s)
 			start++;
 			end = index_operation - 2;
 		}
+		else if (new_s[index_operation - 1] == ']' )
+		{
+			start = index_operation - 1;
+			int bracket = 1;
+			while (bracket != 0)
+			{
+				--start;
+				if (new_s[start] == ']')
+					bracket++;
+				if (new_s[start] == '[')
+					bracket--;
+			}
+			i = start;
+			end = index_operation - 1;
+		}
 		else
 		{
 			start = index_operation - 1;
@@ -410,6 +424,22 @@ char *algebraic_calc(char *s)
 			j = end;
 			
 		}
+		else if (new_s[index_operation + 1] == '[')
+		{
+			int bracket = 1;
+			start = index_operation;
+			end = start+2;
+			while (bracket != 0)
+			{
+				if (new_s[end] == ']')
+					bracket--;
+				
+				if (new_s[end] == '[')
+					bracket++;
+				end++;
+			}
+			j = end - 1;
+		}
 		else
 		{
 			start = index_operation;
@@ -432,19 +462,36 @@ char *algebraic_calc(char *s)
 		//Realizo la operación
 		if (new_s[index_operation] == '*')
 		{
-			m = multiply(m1, m2, c);
-		}
-		else
-		{
-			m = divide(m1, m2, c);
-			if (strcmp(m, "Division not exact") == 0)
+			if (!strchr(m1, ']') && !strchr(m2, ']'))
+				m = multiply(m1, m2, c);
+			else
 			{
+				printf("Implementar producto matricial \n");
 				free(m1);
 				free(m2);
 				return new_s;
 			}
 		}
-
+		else
+		{
+			if (!strchr(m1, ']') && !strchr(m2, ']'))
+			{
+				m = divide(m1, m2, c);
+				if (strcmp(m, "Division not exact") == 0)
+				{
+					free(m1);
+					free(m2);
+					return new_s;
+				}
+			}
+			else
+			{
+				printf("Implementar la división matricial");
+				free(m1);
+				free(m2);
+				return new_s;
+			}
+		}
 		//Reemplazo la operación que se ha hecho por el resultado
 		char *temp = (char *)calloc(100, sizeof(char));
 		if (temp == NULL)
@@ -599,6 +646,7 @@ void calc_with_variables(char **str)
 		}
 	}
 	char *aux = algebraic_calc(*str);
+
 	if (strcmp(aux, *str))
 	{
 		free(*str);
