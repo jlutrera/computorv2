@@ -24,7 +24,6 @@ BONUS
 - Angle convertion between radians and degrees.
 - Function composition.
 - Display the stored variables and their values (`list`).
-- Display the stored variables and their types (`type`).
 - Delete the stored variables (`delete`).
 - Computation with matrices: +, -, *, / (inverse matrix), ^, ** (scalar product if vectors).
 - Command to clear the screen (`clear`).

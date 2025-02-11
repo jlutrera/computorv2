@@ -576,88 +576,6 @@ static int detectbrackets(char **str)
 	return lookupfunction(str);
 }
 
-// static char *newstr(char *substr, int c)
-// {
-// 	int		i;
-// 	char	*t;
-
-// 	t = (char *)calloc(strlen(substr) + 1, sizeof(char));
-// 	if (!t)
-// 		exit(EXIT_FAILURE);
-// 	strcpy(t, substr);
-// 	i = 0;
-// 	while (substr[i])
-// 	{
-// 		if ((c && isalpha(substr[i])))
-// 		{
-// 			t[i] = ' ';
-// 			if (strchr("+-", t[i - 1]) )
-// 				t[i] = '1';
-// 		}
-// 		else if (!c && !isalpha(substr[i]) && substr[i] != '*')
-// 			t[i] = ' ';
-// 		++i;
-// 	}
-// 	remove_spaces(t);
-// 	while (strlen(t) > 0 && t[strlen(t) - 1] == '*')
-// 	{
-// 		t[strlen(t) - 1] = ' ';
-// 		remove_spaces(t);
-// 	}
-// 	while (t[0] == '*')
-// 	{
-// 		t[0] = ' ';
-// 		remove_spaces(t);
-// 	}
-// 	i = 0;
-// 	while (t[i])
-// 	{
-// 		if (i < (int)strlen(t) && t[i] == '*' && (t[i + 1] == '*' || t[i + 1] == ')'))
-// 			t[i] = ' ';
-// 		++i;
-// 	}
-// 	remove_spaces(t);
-// 	return (t);
-// }
-
-// int doingproducts(char **strl, char *substr)
-// {
-// 	char *aux;   //solo números
-// 	char *aux2;  //solo variables (letras)
-// 	int i;
-
-// 	i = 0;
-// 	while (substr[i] && (strchr("*.()+-",substr[i]) || isdigit(substr[i]) || isalpha(substr[i])))
-// 	{
-// 		if (strchr("+-", substr[i]) && (i > 0 && substr[i - 1] != '*'))
-// 			break;
-// 		if (substr[i] == '(')
-// 		{
-// 			++i;
-// 			if (substr[i] == '-' || substr[i] == '+')
-// 				++i;
-// 			while (substr[i] != ')' && (substr[i] == '.' || isdigit(substr[i]) || isalpha(substr[i])))
-// 				++i;
-			
-// 		}
-// 		else
-// 			++i;
-// 	}
-// 	if (substr[i] != '\0')
-// 		return 0;
-
-// 	aux = newstr(substr, 1);
-// 	aux2 = newstr(substr, 0);
-// 	calc(&aux);
-// 	strcpy(*strl, aux);
-// 	if (strlen(aux) > 0 && strlen(aux2) > 0)
-// 		strcat(*strl, "*");
-// 	strcat(*strl, aux2);
-// 	free(aux);
-// 	free(aux2);
-// 	return 1;
-// }
-
 static int check_complex_operators(char *str)
 {
 	if (strchr(str, '!'))
@@ -669,63 +587,6 @@ static int check_complex_operators(char *str)
 	
 	if (v_calc) printf("   Checking Complex operators in : %s%s%s (%sOK%s)\n", CYAN, str, RESET, GREEN, RESET);
 	return 0;
-}
-
-void adjustifonlyproducts(char **s)
-{
-	int i = 0;
-
-	while ((*s)[i])
-	{
-		if (strchr("*.()", (*s)[i]) || isdigit((*s)[i]) || isalpha((*s)[i]))
-		{	
-			if (isalpha((*s)[i]))
-			{
-				int j = i;
-				while ((*s)[i] && isalpha((*s)[i]))
-					++i;
-				char *sb = ft_substr(*s, j, i);
-				if (isfunctionword(sb))
-				{
-					free(sb);
-					break;
-				}
-				free(sb);
-			}
-		    else
-				++i;
-		}
-		else if (((*s)[i] == '+' || (*s)[i] == '-') && (i == 0 || (*s)[i-1] == '('))
-			++i;
-		else
-			break;
-	}
-	if ((*s)[i] == '\0')
-	{
-		i = 0;
-		int minus = 0;
-	
-		while ((*s)[i])
-		{
-			if ((*s)[i] == '(' || (*s)[i] == ')')
-				(*s)[i] = ' ';
-			if ((*s)[i] == '-')
-			{
-				minus += 1;
-				(*s)[i] = ' ';
-			}	
-			++i;
-		}
-		remove_spaces(*s);
-		char *aux = (char *)calloc(strlen(*s) + 2, sizeof(char));
-		if (!aux)
-			exit(EXIT_FAILURE);
-		if (minus % 2 == 1)
-			strcat(aux, "-");
-		strcat(aux, *s);
-		free(*s);
-		*s = aux;
-	}
 }
 
 int	calc(char **str)
@@ -748,8 +609,7 @@ int	calc(char **str)
 	if (!e)
 		resolvedoblesigne(str);
 
-	//adjustifonlyproducts(str);
-	if (!onlynumbers(*str) /*&& !strchr(*str, '[')*/)
+	if (!onlynumbers(*str))
 	{
 		if (v_calc) printf("\n%sREDUCING : %s%s%s\n", GREEN, CYAN, *str, RESET);
 		if (strchr(*str, 'i') && check_complex_operators(*str))

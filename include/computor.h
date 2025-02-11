@@ -23,7 +23,6 @@
 # include <sys/ioctl.h>
 # include <termios.h>
 # include <time.h>
-# include <ctype.h>
 # include <string.h>
 
 # define PI				3.141592653589793
@@ -46,7 +45,7 @@ typedef struct s_token
 	char			*content;
 	struct s_token	*next;
 
-}				t_token;
+}	t_token;
 
 extern bool	v_calc; // variable global para visualizar las operaciones
 extern bool	plotting; // variable global para evitar que se muestren resultados y errores al dibujar

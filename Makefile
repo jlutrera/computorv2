@@ -49,6 +49,8 @@ RM 			= 	rm -rf
 
 # Default target
 all			: 	$(NAME)
+				@echo "Running the program:"
+				@./$(NAME)
 
 # Compile object files
 $(O_DIR)/%.o: 	$(S_DIR)/%.c
@@ -63,19 +65,19 @@ $(NAME)		: 	$(OBJS)
 				@echo "Linking object files... \c"
 				@$(CC) $(OBJS) $(CFLAGS) $(LEAKS) $(LDFLAGS) $(MLXFLAG) -o $(NAME)
 				@echo "$(GREEN)OK!$(RESET)"
-				@echo "Program $(YELLOW)$(NAME)$(GREEN) created successfully !$(RESET)"
+				@echo "Program $(YELLOW)computor v2$(GREEN) created successfully !\n$(RESET)"
 
 # Clean object files
 clean		:
-				@echo "$(RED)Deleting object files...$(RESET)\c"
+				@echo "$(RED)Deleting object files... $(RESET)\c"
 				@$(RM) $(O_DIR)
-				@echo "$(GREEN) all object files DELETED !$(RESET)"
+				@echo "$(GREEN)OK!$(RESET)"
 
 # Clean everything and recompile
 fclean		: 	clean
-				@echo "$(RED)Deleting object and binary files...$(RESET)\c"
+				@echo "$(RED)Deleting object and binary files... $(RESET)\c"
 				@$(RM) $(NAME)
-				@echo "$(GREEN)all files DELETED !$(RESET)"
+				@echo "$(GREEN)OK!$(RESET)"
 
 # Recompile everything
 re			: 	fclean all
