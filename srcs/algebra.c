@@ -42,11 +42,8 @@ double *get_factors(char *s, int *g, char c)
 	double *factors;
 	
 	factors = (double *)calloc(100, sizeof(double));
-	if (factors == NULL)
-	{
-		printf("Error: malloc failed\n");
-		exit(1);
-	}
+	if (!factors)
+		exit(EXIT_FAILURE);
 
 	i = 0;
 	sign = 1;
@@ -121,11 +118,9 @@ char *multiply(char *m1, char *m2, char c)
 	factors2 = get_factors(m2, &grade_max2, c);
 
 	double *factors_r = (double *)calloc(grade_max1+grade_max2+1, sizeof(double));
-	if (factors_r == NULL)
-	{
-		printf("Error: malloc failed\n");
-		exit(1);
-	}
+	if (!factors_r)
+		exit(EXIT_FAILURE);
+
 	double r;
 	for (int i=0; i<= grade_max1; i++)
 	{
@@ -150,11 +145,8 @@ char *multiply(char *m1, char *m2, char c)
 	}
 
 	char *m = (char *)calloc(100, sizeof(char));
-	if (m == NULL)
-	{
-		printf("Error: malloc failed\n");
-		exit(1);
-	}
+	if (!m)
+		exit(EXIT_FAILURE);
 	
 	for (int i=0; i<= (grade_max1+grade_max2); i++)
 	{
@@ -222,10 +214,7 @@ char *divide(char *m1, char *m2, char c)
 	factors2 = get_factors(m2, &grade_max2, c);
 	double *factors_r = (double *)calloc(grade_max1-grade_max2+1, sizeof(double));
 	if (factors_r == NULL)
-	{
-		printf("Error: malloc failed\n");
-		exit(1);
-	}
+		exit(EXIT_FAILURE);
 	
 	int grade_div = grade_max1-grade_max2;
 	int grade_top = grade_max1;
@@ -248,11 +237,8 @@ char *divide(char *m1, char *m2, char c)
 		return "Division not exact";
 	}
 	char *m = (char *)calloc(100, sizeof(char));
-	if (m == NULL)
-	{
-		printf("Error: malloc failed\n");
-		exit(1);
-	}
+	if (!m)
+		exit(EXIT_FAILURE);
 	
 	for (int i=0; i<= grade_max1 - grade_max2; i++)
 	{
@@ -321,14 +307,17 @@ char *algebraic_calc(char *s)
 	int i, j;
 
 	if (c == 0)
-		return s;
+	{
+		char *aux = (char *)calloc(strlen(s)+1, sizeof(char));
+		if (!aux)
+			exit(EXIT_FAILURE);
+		strcpy(aux, s);
+		return (aux);
+	}
 	//Copia de la cadena s sin espacios
 	char *new_s = (char *)calloc(strlen(s)+1, sizeof(char));
-	if (new_s == NULL)
-	{
-		printf("Error: malloc failed\n");
-		exit(1);
-	}
+	if (!new_s)
+		exit(EXIT_FAILURE);
 	strcat(new_s, s);
 	while (1)
 	{
@@ -347,17 +336,11 @@ char *algebraic_calc(char *s)
 
 		//Cadenas auxiliares para almacenar los multiplicandos, o dividendo y divisor
 		m1 = (char *)calloc(strlen(new_s), sizeof(char));
-		if (m1 == NULL)
-		{
-			printf("Error: malloc failed\n");
-			exit(1);
-		}
+		if (!m1)
+			exit(EXIT_FAILURE);
 		m2 = (char *)calloc(strlen(new_s), sizeof(char));
-		if (m2 == NULL)
-		{
-			printf("Error: malloc failed\n");
-			exit(1);
-		}
+		if (!m2)
+			exit(EXIT_FAILURE);
 
 		// Busca la primera multiplicación
 		if ((p > 0 && d < 0) || (p > 0 && d > 0 && p < d) )
@@ -466,7 +449,6 @@ char *algebraic_calc(char *s)
 				m = multiply(m1, m2, c);
 			else
 			{
-				printf("Implementar producto matricial \n");
 				free(m1);
 				free(m2);
 				return new_s;
@@ -486,7 +468,6 @@ char *algebraic_calc(char *s)
 			}
 			else
 			{
-				printf("Implementar la división matricial");
 				free(m1);
 				free(m2);
 				return new_s;
@@ -494,11 +475,8 @@ char *algebraic_calc(char *s)
 		}
 		//Reemplazo la operación que se ha hecho por el resultado
 		char *temp = (char *)calloc(100, sizeof(char));
-		if (temp == NULL)
-		{
-			printf("Error: malloc failed\n");
-			exit(1);
-		}
+		if (!temp)
+			exit(EXIT_FAILURE);
 		strncpy(temp, new_s, i);
 		if (new_s[i] == '-' && new_s[i+1] == '(')
 			strcat(temp, "-1*(");
@@ -616,6 +594,8 @@ void calc_with_variables(char **str)
 				
 				int num_exp = atoi(exponent);
 				char *newstr = (char *)calloc(strlen(*str) * (num_exp + 2)+ 1, sizeof(char));
+				if (!newstr)
+					exit(EXIT_FAILURE);
 				while (num_exp > 1)
 				{
 					strcat(newstr, base);
@@ -639,6 +619,8 @@ void calc_with_variables(char **str)
 				free(newstr);
 				remove_spaces(*str);
 				char *aux2 = algebraic_calc(*str);
+				if (!aux2)
+					exit(EXIT_FAILURE);
 				free(*str);
 				*str = aux2;
 			}
