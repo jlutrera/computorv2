@@ -338,7 +338,42 @@ static int handle_mouse(int button, int x, int y, t_data *data)
         snprintf(coords, sizeof(coords), "(%.2f, %.2f)", graph_x, graph_y);		
         mlx_string_put(data->mlx, data->win, x + 20, y -20 , P_CYAN, coords);
     }
+	else if (button == MSBTN_RIGTH)
+	{
+		data->rightbuttonpressed = true;
+		data->xpress = x;
+		data->ypress = y;
+	}
 	return 0;
+}
+
+static int mouse_release(int button, int x, int y, t_data *data)
+{
+	(void)x;
+	(void)y;
+	if (button == MSBTN_RIGTH)
+	{
+		data->rightbuttonpressed = false;
+	}
+	return (0);
+}
+
+static int mouse_move(int x, int y, t_data *data)
+{
+   if (data->rightbuttonpressed)
+   {
+		if (y > data->ypress + 20)
+			data->offset_y += 3 / data->zoom;
+		else if (y < data->ypress - 20)
+			data->offset_y -= 3 / data->zoom;
+		if (x > data->xpress + 20)
+			data->offset_x -= 3 / data->zoom;
+		else if (x < data->xpress - 20)
+			data->offset_x += 3 / data->zoom;
+
+		plot_function(data);
+   }
+   return (0);
 }
 
 static int handle_key_press(int keycode, t_data *data)
@@ -412,6 +447,7 @@ static void draw(char *f)
 	data.size_hints->min_height = 100;
 	data.size_hints->max_width = WIDTH;  // Tamaño máximo
 	data.size_hints->max_height = HEIGHT;
+	data.rightbuttonpressed = false;
 	XSetWMNormalHints(data.display, data.window, data.size_hints);
 
 	data.function = f;
@@ -424,6 +460,8 @@ static void draw(char *f)
 
 	mlx_key_hook(data.win, handle_key_press, &data); // Cerrar ventana con tecla Q o q, Zoom con flechas
 	mlx_hook(data.win, 17, 0, handle_close, &data);  // Cerrar ventana con botón "X"
+	mlx_hook(data.win, 5, 1L << 3, mouse_release, &data); // Evento de liberación de ratón
+    mlx_hook(data.win, 6, 1L << 6, mouse_move, &data); // Evento de movimiento del ratón
 	mlx_loop_hook(data.mlx, handle_loop, &data);     // Revisa el tamaño de la ventana
 	mlx_mouse_hook(data.win, handle_mouse, &data);   // Eventos de ratón 
 	mlx_loop(data.mlx);

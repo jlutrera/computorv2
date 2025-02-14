@@ -31,6 +31,9 @@ typedef struct s_data
 	double		zoom;
 	double		offset_x;
 	double		offset_y;
+	int			xpress;
+	int			ypress;
+	bool		rightbuttonpressed;
 	XSizeHints	*size_hints;
 } t_data;
 
@@ -59,5 +62,6 @@ typedef struct s_data
 # define MSCROLL_UP		4
 # define MSCROLL_DOWN	5
 # define MSBTN_LEFT		1
+# define MSBTN_RIGTH	3
 
 #endif

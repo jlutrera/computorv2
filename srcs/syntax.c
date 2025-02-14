@@ -23,7 +23,15 @@ static bool iscommandword(char *token)
 	return 0;
 }
 
-static int check_matrix_row(char *r, char *token)
+static int isnotnumber(char *s)
+{
+	int i = -1;
+	while (s[++i])
+		if (!isdigit(s[i]))
+			return 1;
+	return 0;
+}
+static int check_matrix_row(char *r)
 {
 	int	l;
 	int i;
@@ -52,9 +60,10 @@ static int check_matrix_row(char *r, char *token)
 		while (!strchr(",]", r[i]))
 			++i;
 		char *word = ft_substr(r, j, i);
-		if (syntax_error_content(word, token))
+		if (isnotnumber(word))
 		{
 			free(word);
+			printf_error("Matrixes must contain only numbers", NULL, 0);
 			return -1;
 		}
 		free(word);
@@ -66,7 +75,7 @@ static int check_matrix_row(char *r, char *token)
 	return c;  //devuelvo el número de elementos del vector = número de columnas
 }
 
-static bool	check_matrix(char *content, char *token)
+static bool	check_matrix(char *content)
 {
 	int		i;
 	int 	j;
@@ -93,7 +102,7 @@ static bool	check_matrix(char *content, char *token)
 			r =ft_substr(content, i, j);
 		if (columns == 0)
 		{
-			columns = check_matrix_row(r, token);
+			columns = check_matrix_row(r);
 			free(r);
 			if (columns == -1)
 				return 1;
@@ -102,7 +111,7 @@ static bool	check_matrix(char *content, char *token)
 		}
 		else
 		{
-			temp_columns = check_matrix_row(r, token);
+			temp_columns = check_matrix_row(r);
 			free(r);
 			if (temp_columns == -1)
 				return 1;
@@ -292,7 +301,7 @@ bool	syntax_error_content(char *content, char *token)
 			while (content[j] != '\0' && (content[j] != ']' || content[j+1] != ']'))
 				++j;
 			subcontent = ft_substr(content, i, j+2);
-			m = check_matrix(subcontent, token);
+			m = check_matrix(subcontent);
 			free(subcontent);
 			if (m == 1)
 				return 1;
