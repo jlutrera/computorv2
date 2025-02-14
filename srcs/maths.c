@@ -126,12 +126,21 @@ double ft_acos(double x)
 
 double ft_asin(double x)
 {
-	double term;
-	double sum;
+	if (x < -1.0 || x > 1.0)
+		return 0.0;
 
-	term = x;
-	sum = term;
-	for (int n=1; n < TAYLOR_TERMS; n++)
+	if (x > 0.95 || x < -0.95)
+	{
+		double y = PI / 2 - ft_asin(ft_root(1 - x * x, 2));
+		if (x < 0)
+			y = -y;
+		return y;
+	}
+
+	double term = x;
+	double sum = term;
+
+	for (int n = 1; n < TAYLOR_TERMS; n++)
 	{
 		term *= (ft_power(2*n-1, 2) * x * x) / (2*n * (2*n + 1));
 		sum += term;
