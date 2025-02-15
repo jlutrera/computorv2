@@ -29,7 +29,7 @@
 # define E				2.718281828459045
 # define LN10			2.302585092994046
 # define LN2			0.693147180559945
-# define TAYLOR_TERMS 	30
+# define TAYLOR_TERMS 	10
 # define PRECISION		1e-15
 
 //Colours for printf
@@ -71,6 +71,7 @@ bool	list(char *content, t_token **list);
 // maths.c
 double	ft_mod(double a, double b);
 double	ft_power(double base, int exponent);
+double	ft_powerfloat(double base, double exponent);
 double	ft_root(double a, int n);
 double	ft_abs(double x);
 double	ft_factorial(int n);

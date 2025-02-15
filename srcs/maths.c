@@ -35,6 +35,13 @@ double ft_power(double base, int exponent)
 	return result;
 }
 
+double ft_powerfloat(double base, double exponent)
+{
+	double logbase = ft_ln(base);
+	double result = ft_exp(exponent * logbase);
+	return result;
+}
+
 double	ft_root(double a, int n)
 {
 	double	x;
@@ -209,12 +216,23 @@ double ft_log(double x)
 
 double ft_exp(double x)
 {
-	return ft_power(E, x);
+    double result = 1.0;
+    double termino = 1.0;
+    int n = 1;
+
+    while (termino > PRECISION || termino < -PRECISION)
+	{
+        termino *= x / n;
+        result += termino;
+        n++;
+    }
+
+    return result;
 }
 
 double ft_deg(double rad)
 {
-	return rad * 180 / PI;
+	return rad * 180 / 3.14;
 }
 
 double ft_rad(double deg)
