@@ -536,14 +536,31 @@ static int whereistheclosingbracket(char *str, int i)
 	return --i;
 }
 
+static int exponents_are_integer(char *s)
+{
+	int i = strchr(s, '^') - s;
+	while (i++ > 0)
+	{
+		printf("s[%i] = %c\n", i, s[i]);
+		while(isalnum(s[i]))
+			++i;
+		printf("s[%i] = %c\n", i, s[i]);
+		if (s[i] == '.')
+			return 0;
+		i = strchr(s+i, '^') - s;
+	}
+	return 1;
+} 
+
 void calc_with_variables(char **str)
 {
 	int 	i;
 	int		j;
 	char 	*newp;
-
+	int 	num_exp;
 	
 	i = strchr(*str, '(') - (*str);
+	printf("calc_with_variables ....i = %d\n", i);
 	if (i >= 0)
 	{
 		j = whereistheclosingbracket(*str, i + 1);
@@ -568,7 +585,9 @@ void calc_with_variables(char **str)
 		i = strchr(*str, '(') - (*str);
 		while ( ( i == 0 || (i > 0 && !isalpha((*str)[i - 1])) ) )
 		{
+			printf("i = %d\n", i);
 			j = whereistheclosingbracket(*str, i + 1);
+			printf("j = %d\n", j);
 			if ( ((i > 0 && (*str)[i - 1] == '+') || i == 0 ) &&
 				  ((*str)[j + 1] == '+' || (*str)[j + 1] == '-' || (*str)[j + 1] == '\0') )	
 				addbrackets(str, i, j);
@@ -581,18 +600,26 @@ void calc_with_variables(char **str)
 			{
 				char *exponent;
 				char *base = ft_substr(*str, i, j+1);
+
 				j += 2;
 				int k = j;
 				while (isdigit((*str)[k]) || (*str)[k] == '.')
 					++k;
 				exponent = ft_substr(*str, j, k);
+
 				if (!strchr(base, '+') && !strchr(base, '-'))
 				{
 					base[0] = ' ';
 					base[strlen(base) - 1] = ' ';
 				}
 				
-				int num_exp = atoi(exponent);
+				num_exp = atoi(exponent);
+				if (num_exp < 0)
+				{
+					free(exponent);
+					free(base);
+					return;
+				}
 				char *newstr = (char *)calloc(strlen(*str) * (num_exp + 2)+ 1, sizeof(char));
 				if (!newstr)
 					exit(EXIT_FAILURE);
@@ -618,22 +645,27 @@ void calc_with_variables(char **str)
 				free(exponent);
 				free(newstr);
 				remove_spaces(*str);
-				char *aux2 = algebraic_calc(*str);
-				if (!aux2)
-					exit(EXIT_FAILURE);
-				free(*str);
-				*str = aux2;
+				if (num_exp > 0)
+				{
+					char *aux2 = algebraic_calc(*str);
+					if (!aux2)
+						exit(EXIT_FAILURE);
+					free(*str);
+					*str = aux2;
+				}
 			}
 			i = strchr(*str+i+1, '(') - (*str);
 		}
 	}
-	char *aux = algebraic_calc(*str);
-
-	if (strcmp(aux, *str))
+	if (exponents_are_integer(*str))
 	{
-		free(*str);
-		*str = aux;
+		char *aux = algebraic_calc(*str);
+		if (strcmp(aux, *str))
+		{
+			free(*str);
+			*str = aux;
+		}
+		else
+			free(aux);
 	}
-	else
-		free(aux);
 }

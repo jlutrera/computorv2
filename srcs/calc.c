@@ -553,13 +553,25 @@ static int detectbrackets(char **str)
 
 static int check_complex_operators(char *str)
 {
+	if (!strchr(str, 'i'))
+		return 0;
 	if (strchr(str, '!'))
-		return printf_error("Factorial not allowed in complex numbers", str, 0);
+		return printf_error("Factorial not allowed with complex numbers", str, 0);
 	if (strchr(str, '/'))
-		return printf_error("Division not allowed in complex numbers", str, 0);
+		return printf_error("Division not allowed with complex numbers", str, 0);
 	if (strchr(str, '%'))
-		return printf_error("Modulus not allowed in complex numbers", str, 0);
-	
+		return printf_error("Modulus not allowed with complex numbers", str, 0);
+	if (strchr(str, '^'))
+	{
+		int i = strchr(str, '^') - str;
+		if (strchr(str, 'i') - str > i)
+			return  printf_error("Complex exponents are not allowed", str, strchr(str+i, 'i') - str);
+		if (str[i+1] == '(' && str[i+2] == '-')
+			return  printf_error("Negative exponents with complex base are not allowed", str, i+2);
+		if (strchr(str, '.') - str > i)
+			return  printf_error("Decimal exponents with complex are not allowed", str, strchr(str, '.') - str);
+	}
+
 	if (v_calc) printf("   Checking Complex operators in : %s%s%s (%sOK%s)\n", CYAN, str, RESET, GREEN, RESET);
 	return 0;
 }
