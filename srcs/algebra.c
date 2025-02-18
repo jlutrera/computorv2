@@ -541,11 +541,9 @@ static int exponents_are_integer(char *s)
 	int i = strchr(s, '^') - s;
 	while (i++ > 0)
 	{
-		printf("s[%i] = %c\n", i, s[i]);
-		while(isalnum(s[i]))
+		while(isdigit(s[i]))
 			++i;
-		printf("s[%i] = %c\n", i, s[i]);
-		if (s[i] == '.')
+		if (s[i] == '.' || isalpha(s[i]))
 			return 0;
 		i = strchr(s+i, '^') - s;
 	}
@@ -560,7 +558,6 @@ void calc_with_variables(char **str)
 	int 	num_exp;
 	
 	i = strchr(*str, '(') - (*str);
-	printf("calc_with_variables ....i = %d\n", i);
 	if (i >= 0)
 	{
 		j = whereistheclosingbracket(*str, i + 1);
@@ -585,9 +582,7 @@ void calc_with_variables(char **str)
 		i = strchr(*str, '(') - (*str);
 		while ( ( i == 0 || (i > 0 && !isalpha((*str)[i - 1])) ) )
 		{
-			printf("i = %d\n", i);
 			j = whereistheclosingbracket(*str, i + 1);
-			printf("j = %d\n", j);
 			if ( ((i > 0 && (*str)[i - 1] == '+') || i == 0 ) &&
 				  ((*str)[j + 1] == '+' || (*str)[j + 1] == '-' || (*str)[j + 1] == '\0') )	
 				addbrackets(str, i, j);

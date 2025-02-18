@@ -607,11 +607,6 @@ int	calc(char **str)
 	
 	if (strchr(*str, '['))
 	{
-		if (!onlydigits(*str))
-		{
-			printf("   Hay que separar los números de las variables\n");
-			return 0;
-		}
 		e = calc_with_matrices(str);
 		if (strchr(*str, '['))
 			return e;
