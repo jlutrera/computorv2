@@ -55,6 +55,8 @@ void	calc_with_variables(char **str);
 // calc.c
 int		calc(char **str);
 //int 	doingproducts(char **strl, char *substr);
+// complex.c
+void	complex_power(char **s);
 // compute.c
 int 	compute(char **content, t_token **list, char *token);
 // delete.c

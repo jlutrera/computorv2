@@ -553,6 +553,7 @@ static int detectbrackets(char **str)
 
 static int check_complex_operators(char *str)
 {
+	printf("Número complejo: %s\n", str);
 	if (!strchr(str, 'i'))
 		return 0;
 	if (strchr(str, '!'))
@@ -563,13 +564,21 @@ static int check_complex_operators(char *str)
 		return printf_error("Modulus not allowed with complex numbers", str, 0);
 	if (strchr(str, '^'))
 	{
+		complex_power(&str);
 		int i = strchr(str, '^') - str;
-		if (strchr(str, 'i') - str > i)
-			return  printf_error("Complex exponents are not allowed", str, strchr(str+i, 'i') - str);
+		if (strchr(str+i, 'i'))
+		{
+			return  printf_error("Complex exponents are processing", str, strchr(str+i, 'i') - str);
+		}
 		if (str[i+1] == '(' && str[i+2] == '-')
-			return  printf_error("Negative exponents with complex base are not allowed", str, i+2);
+		{
+
+			return  printf_error("Negative exponents with complex base areprocessing", str, i+2);
+		}
 		if (strchr(str, '.') - str > i)
-			return  printf_error("Decimal exponents with complex are not allowed", str, strchr(str, '.') - str);
+		{
+			return  printf_error("Decimal exponents with complex base are processing", str, strchr(str, '.') - str);
+		}
 	}
 
 	if (v_calc) printf("   Checking Complex operators in : %s%s%s (%sOK%s)\n", CYAN, str, RESET, GREEN, RESET);
@@ -598,7 +607,7 @@ int	calc(char **str)
 
 	if (!onlynumbers(*str))
 	{
-		if (v_calc) printf("\n%sREDUCING : %s%s%s\n", GREEN, CYAN, *str, RESET);
+		if (v_calc) printf("%sREDUCING : %s%s%s\n", GREEN, CYAN, *str, RESET);
 		if (strchr(*str, 'i') && check_complex_operators(*str))
 			return 1;
 		calc_with_variables(str);

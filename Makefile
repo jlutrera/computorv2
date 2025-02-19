@@ -18,6 +18,7 @@ MLXFLAG		=	-Lusr/lib -Lmlx -lmlx -lXext -lX11 -lm -lbsd -Imlx
 SRCS		=	./srcs/algebra.c \
 				./srcs/calc.c \
 				./srcs/matrix.c \
+				./srcs/complex.c \
 				./srcs/compute.c \
 				./srcs/delete.c \
 				./srcs/equations.c \
