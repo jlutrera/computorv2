@@ -2,12 +2,12 @@
 
 - Support for the following mathematical types:
   - Rational numbers.
-  - Complex numbers (with rational coefficients).
+  - Complex numbers.
   - Matrices.
 - Assignment of an expression to a variable by type inference.
 - Reassignment of an existing variable with an expression of another type.
 - Assignment of a variable to another variable.
-- Resolution of a mathematical expression with or without defined variable(s)
+- Resolution of a mathematical expression with defined variable(s)
 - Resolution of an equation of degree less than or equal to 2 (`solve "equation"`).
 - Operations between types, as much as possible: +, - , *, /, %, ^, !, **
 - Exit the program (typing the command `exit`).
@@ -30,4 +30,3 @@ BONUS
 - History of valid commands with results (pressing cursor keys).
 - Viewing the calculating process or not (`visual on/off`).
 - Help (`help`).
-

@@ -163,8 +163,11 @@ static void	ft_add_history(char *token, char *content, char *result)
 		exit(EXIT_FAILURE);
 	
 	strcpy(history, token);
-	strcat(history, " = ");
-	strcat(history, content);
+	if (strlen(content) != 0)
+	{
+		strcat(history, " = ");
+		strcat(history, content);
+	}
 	strcat(history, "  >>  ");
 	strcat(history, result);
 	add_history(history);
@@ -186,7 +189,6 @@ static bool variable_not_found(char *token, char *content, t_token *token_list)
 		variable = 0;
 
 	i = 0;
-
 	while (content[i] != '\0')
 	{
 		j = i;
@@ -218,7 +220,7 @@ static bool variable_not_found(char *token, char *content, t_token *token_list)
 					}
 					if (!ptr)
 					{
-						printf("%sError%s: Variable %s%s%s not found\n", RED, RESET, RED, aux, RESET);
+						printf("   %sError%s: Variable %s%s%s not found\n", RED, RESET, RED, aux, RESET);
 						free(aux);
 						return 1;
 					}
@@ -270,58 +272,81 @@ int parse(char **input, t_token **token_list)
 	int		i;
 	char	*token;
 	char	*content;
-	char 	*cpytoken;
 	char	*response;
-
-	str_to_lower(*input);
-	*input = ft_trim(*input);
+	int		error;
 	
+	*input = ft_trim(*input);
+	if (*input && (*input)[0] == '\0')
+		return 0;
+	str_to_lower(*input);
+
 	if (!strcmp(*input, "exit"))
 		return clean_memory(token_list);
-
 	if (execute_command(*input, token_list))
-		return 0;
-
-	if (strchr(*input, '=') == *input || !strchr(*input, '='))
-	{
-		printf_error("Equal sign not found", NULL, -1);
-		return 0;	
-	}
+		return (0);
 
 	i = strchr(*input, '=') - *input;
+	if (i < 0)
+		return (printf_error("Equal sign not found", NULL, -1) - 1);
+	if (i == 0)
+		return (printf_error("No value before assignment", *input, i) - 1);
 	if (i == (int)strlen(*input) - 1)
+		return (printf_error("No value after assignment", *input, i) - 1);
+
+	token 	= ft_substr(*input, 0, i);
+	token 	= ft_trim(token);
+	content = ft_substr(*input, i+1, strlen(*input));
+	content = ft_trim(content);
+
+	error = 0;
+	if (!strcmp(content, "?"))
+		error = syntax_error_content(token, NULL);
+	else
 	{
-		printf_error("No value after assignment", *input, i);
+		error = syntax_error_token(token);
+		if (!error)
+			error = syntax_error_content(content, token);
+		if (!error)
+			error = variable_not_found(token, content, *token_list);
+	}
+	if (error)
+	{
+		if (!strcmp(content, "?"))
+			ft_add_history(token, "", "Error");
+		else
+			ft_add_history(token, content, "Error");
+		free(token);
+		free(content);
 		return 0;
 	}
 
-	token = ft_substr(*input, 0, i);
-	token = ft_trim(token);
-	content = ft_substr(*input, i+1, strlen(*input));
-	content = ft_trim(content);
-	
 	if (!strcmp(content, "?"))
 	{
-		if (!syntax_error_content(token, NULL) &&
-			compute(&token, token_list, NULL) == 0)
-				print_result(token);
-	}
-	else if (!syntax_error_token(token) &&
-			 !syntax_error_content(content, token) &&
-			 !variable_not_found(token, content, *token_list))
-	{
-		cpytoken = ft_substr(token, 0, strlen(token));			
-		response = ft_substr(content, 0, strlen(content));
-		if (compute(&response, token_list, cpytoken) == 0)
+		response = ft_substr(token, 0, strlen(token));	
+		if (compute(&response, token_list, NULL) == 0)
 		{
-			add_token_to_list(token_list, token, content);
-			ft_add_history(cpytoken, content, response);
 			print_result(response);
+			ft_add_history(token, "", response);
 		}
-		free(response);
-		free(cpytoken);
+		else
+			ft_add_history(token, "", "Error");
 	}
-
+	else
+	{		
+		response = ft_substr(content, 0, strlen(content));
+		if (compute(&response, token_list, token) == 0)
+		{
+			print_result(response);
+			ft_add_history(token, content, response);
+			if (strchr(token, '('))
+				add_token_to_list(token_list, token, content);
+			else
+				add_token_to_list(token_list, token, response);
+		}
+		else
+			ft_add_history(token, content, "Error");
+	}
+	free(response);
 	free(token);
 	free(content);
 	return 0;

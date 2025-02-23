@@ -538,15 +538,19 @@ static int whereistheclosingbracket(char *str, int i)
 
 static int exponents_are_integer(char *s)
 {
+	bool brackets = false;
 	int i = strchr(s, '^') - s;
 	while (i >= 0)
 	{
 		++i;
 		if (s[i] == '(')
+		{
+			brackets = true;
 			++i;
+		}
 		if (s[i] == '-')
 			return 0;
-		while(isdigit(s[i]) || strchr("+-*/%!", s[i]))
+		while(isdigit(s[i]) || (brackets && strchr("+-*/%!", s[i])))
 			++i;
 		if (s[i] == '.' || isalpha(s[i]))
 			return 0;
@@ -571,7 +575,6 @@ void calc_with_variables(char **str)
 		
 		if (strchr(newp, '('))
 		{
-			if (v_calc) printf("   Calculating : %s%s%s\n", CYAN, newp, RESET);
 			calc_with_variables(&newp);
 			remove_spaces(newp);
 			
@@ -584,7 +587,6 @@ void calc_with_variables(char **str)
 			remove_spaces(*str);
 		}
 		free(newp);
-		if (v_calc) printf("   Calculating : %s%s%s\n", CYAN, *str, RESET);
 		i = strchr(*str, '(') - (*str);
 	
 		while ( ( i == 0 || (i > 0 && !isalpha((*str)[i - 1])) ) )
@@ -600,7 +602,7 @@ void calc_with_variables(char **str)
 			
 			else if ((*str)[j + 1] == '^')
 			{
-				if (!exponents_are_integer(*str + j + 1))
+				if (!exponents_are_integer(*str))
 					break;
 				char *exponent;
 				char *base = ft_substr(*str, i, j+1);
@@ -661,6 +663,7 @@ void calc_with_variables(char **str)
 			i = strchr(*str+i+1, '(') - (*str);
 		}
 	}
+	
 	if (exponents_are_integer(*str))
 	{
 		char *aux = algebraic_calc(*str);

@@ -157,17 +157,20 @@ double ft_asin(double x)
 
 double ft_atan(double x)
 {
-	double term;
-	double sum;
+    if (x > 1)
+        return PI / 2 - ft_atan(1 / x);
+    if (x < -1)
+        return -PI / 2 - ft_atan(1 / x);
 
-	term = x;
-	sum = 0;
-	for (int n=0; n < TAYLOR_TERMS; n++)
-	{
-		term = ft_power(-1, n) * ft_power(x, 2 * n + 1) / (2 * n + 1);
-		sum += term;
-	}
-	return sum;
+    double term;
+    double sum = 0.0;
+
+    for (int n = 0; n < TAYLOR_TERMS; n++)
+    {
+        term = ft_power(-1, n) * ft_power(x, 2 * n + 1) / (2 * n + 1);
+        sum += term;
+    }
+    return sum;
 }
 
 static double calc_ln(double y)

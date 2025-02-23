@@ -183,7 +183,10 @@ char	*ft_trim(char *str)
 	while (isspace((unsigned char)str[init]))
 		++init;
 	if (str[init] == 0)
-		return str;
+	{
+		free(str);
+		return strdup("");
+	}
 	end = strlen(str) - 1;
 	while (end > init && isspace((unsigned char)str[end]))
 		--end;

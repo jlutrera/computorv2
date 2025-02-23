@@ -487,7 +487,6 @@ static int detectbrackets(char **str)
 				b1 = b1 + ((*str)[i] == '(') - ((*str)[i] == ')');
 				if (b1 == 0)
 				{
-
 					substr = ft_substr(*str, start, i);
 					while (substr[0] == '(' && substr[strlen(substr)-1] == ')')
 					{
@@ -508,7 +507,7 @@ static int detectbrackets(char **str)
 							break;
 					}
 
-					if (v_calc) printf("%s+ BRACKET: %s%s%s\n", GREEN, CYAN, substr, RESET);
+					if (v_calc) printf("%sBRACKET     <= %s%s%s\n", GREEN, CYAN, substr, RESET);
 					if (detectbrackets(&substr) || lookupfunction(&substr))
 					{
 						free(substr);
@@ -516,9 +515,7 @@ static int detectbrackets(char **str)
 					}
 
 					if (!onlynumbers(substr) && !strchr(substr, '(')) 
-					{
 						calc_with_variables(&substr);
-					}
 					
 					else if (onlynumbers(substr))
 					{
@@ -542,7 +539,7 @@ static int detectbrackets(char **str)
 						(*str)[i] = ' ';
 						remove_spaces(*str);
 					}
-					if (v_calc) printf("%s- BRACKET: %s%s%s\n", GREEN, CYAN, *str, RESET);
+					if (v_calc) printf("%sBRACKET     => %s%s%s\n", GREEN, CYAN, *str, RESET);
 				}
 				++i;
 			}
@@ -551,11 +548,20 @@ static int detectbrackets(char **str)
 	return lookupfunction(str);
 }
 
+
 static int check_complex_operators(char **str)
 {
-	printf("Número complejo: %s\n", *str);
+	printf("expresion : %s\n", *str);
+
 	if (!strchr(*str, 'i'))
 		return 0;
+
+	for (size_t i=0; i < strlen(*str); i++)
+	{
+		if (isalpha((*str)[i]))
+			return 0;
+	}
+
 	if (strchr(*str, '!'))
 		return printf_error("Factorial not allowed with complex numbers", *str, 0);
 	if (strchr(*str, '/'))
@@ -563,27 +569,8 @@ static int check_complex_operators(char **str)
 	if (strchr(*str, '%'))
 		return printf_error("Modulus not allowed with complex numbers", *str, 0);
 	if (strchr(*str, '^'))
-	{
 		complex_power(str);
-		return 0;
-	
-		// int i = strchr(str, '^') - str;
-		// if (strchr(str+i, 'i'))
-		// {
-		// 	return  printf_error("Complex exponents are processing", str, strchr(str+i, 'i') - str);
-		// }
-		// if (str[i+1] == '(' && str[i+2] == '-')
-		// {
 
-		// 	return  printf_error("Negative exponents with complex base areprocessing", str, i+2);
-		// }
-		// if (strchr(str, '.') - str > i)
-		// {
-		// 	return  printf_error("Decimal exponents with complex base are processing", str, strchr(str, '.') - str);
-		// }
-	}
-
-	if (v_calc) printf("   Checking Complex operators in : %s%s%s (%sOK%s)\n", CYAN, *str, RESET, GREEN, RESET);
 	return 0;
 }
 
@@ -609,13 +596,14 @@ int	calc(char **str)
 
 	if (!onlynumbers(*str))
 	{
-		if (v_calc) printf("%sREDUCING : %s%s%s\n", GREEN, CYAN, *str, RESET);
 		if (strchr(*str, 'i') && check_complex_operators(str))
 			return 1;
+		if (v_calc) printf("%sREDUCING    : %s%s%s", GREEN, CYAN, *str, RESET);
 		if (onlynumbers(*str))
 			calc(str);
 		else
 			calc_with_variables(str);
+		if (v_calc) printf(" => %s%s%s\n", CYAN, *str, RESET);
 		return 0;
 	}
 	
@@ -655,13 +643,12 @@ int	calc(char **str)
 			{
 				if (v_calc) 
 				{
-					printf("   Calc    : %s%.2f %c", CYAN, a, (*str)[i]);
+					printf("%sCALCULATING :%s %s => %s%.2f %c", GREEN, RESET, *str, CYAN, a, (*str)[i]);
 					if ( (*str)[i] != '!')
 						printf(" %.2f", b);
 					printf(" = %s%s\n", aux, RESET);
 				}
 				update_result(str, start, end, aux);
-				if (v_calc) printf("   Result  : %s%s%s\n", CYAN, *str, RESET);
 				op = 0;
 			}
 			free(aux);

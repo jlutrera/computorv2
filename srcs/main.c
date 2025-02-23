@@ -58,8 +58,8 @@ int	main(int argc, char **argv)
 		input = readline(prompt);
 		if (input)
 		{
-			if (*input)
-				finish = parse(&input, &token_list);
+			//if (*input)
+			finish = parse(&input, &token_list);
 			free(input);
 		}
 	}

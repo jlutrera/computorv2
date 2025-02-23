@@ -43,7 +43,7 @@ static int change_content(char **s, int j, int i, char *dest)
 
 	var_to_change = ft_substr(*s, j, i);
 
-	if (v_calc) printf("%sREPLACING %s%s%s for %s%s%s in %s%s%s\n", GREEN , CYAN, dest, RESET, CYAN, var_to_change, RESET, CYAN, *s, RESET);
+	if (v_calc) printf("%sREPLACING   : %s%s=%s%s in %s", GREEN , CYAN, var_to_change, dest, RESET, *s);
 
 	while (check_brackets(var_to_change))
 	{
@@ -53,6 +53,7 @@ static int change_content(char **s, int j, int i, char *dest)
 	if (!strcmp(var_to_change, dest))
 	{
 		free(var_to_change);
+		if (v_calc) printf("\n");
 		return 0;
 	}
 
@@ -84,7 +85,7 @@ static int change_content(char **s, int j, int i, char *dest)
 	remove_spaces(new_str);
 	free(*s);
 	*s = new_str;
-	if (v_calc) printf("   Result : %s%s%s\n", CYAN, *s, RESET);
+	if (v_calc) printf(" => %s%s%s\n", CYAN, *s, RESET);
 	return (extra);
 }
 
@@ -236,27 +237,17 @@ int	compute(char **s, t_token **list, char *token)
 {
 	int 	i;
 	int		j;
-	int		k;
-	int		b;
+	int		bracket;
+	int		numbrackets;
 	char 	*cvar;
 	char	*var;
-	char	variable[2];
-
-	variable[0] = '\0';
-	variable[1] = '\0';
+	char	variable[2] = {0}; //En el caso de que haya función
 
 	if (token)
 	{
-		i = 0;
-		j = 0;
-		while ((*s)[i])
-		{
-			if ((*s)[i] == '(')
-				j = i;
-			++i;
-		}
-		if (j != 0)
-			variable[0] = (*s)[j + 1];
+		i = strchr(*s, '(') - *s;
+		if (i > 0)
+			variable[0] = (*s)[i + 1];
 	}
 
 	i = 0;
@@ -290,11 +281,11 @@ int	compute(char **s, t_token **list, char *token)
 		}
 		else 
 		{
-			k = i;
-			b = 1;
-			while ((*s)[++k] && b != 0)
-				b = b + ((*s)[k] == '(') - ((*s)[k] == ')');
-			var = ft_substr(*s, j, k);
+			bracket = i;
+			numbrackets = 1;
+			while ((*s)[++bracket] && numbrackets != 0)
+				numbrackets += ( ((*s)[bracket] == '(') - ((*s)[bracket] == ')') );
+			var = ft_substr(*s, j, bracket);
 			cvar = search_content_in_functions(var, list);
 			if (cvar)
 			{
@@ -306,7 +297,7 @@ int	compute(char **s, t_token **list, char *token)
 					return 1;
 				}
 
-				change_content(s, j, k, cvar);
+				change_content(s, j, bracket, cvar);
 				i = 0;
 				free(cvar);
 			}
