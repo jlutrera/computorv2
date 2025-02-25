@@ -507,7 +507,7 @@ static int detectbrackets(char **str)
 							break;
 					}
 
-					if (v_calc) printf("%sBRACKET     <= %s%s%s\n", GREEN, CYAN, substr, RESET);
+					if (v_calc) printf("%sBRACKET    <= %s%s%s\n", GREEN, CYAN, substr, RESET);
 					if (detectbrackets(&substr) || lookupfunction(&substr))
 					{
 						free(substr);
@@ -539,7 +539,7 @@ static int detectbrackets(char **str)
 						(*str)[i] = ' ';
 						remove_spaces(*str);
 					}
-					if (v_calc) printf("%sBRACKET     => %s%s%s\n", GREEN, CYAN, *str, RESET);
+					if (v_calc) printf("%sBRACKET    => %s%s%s\n", GREEN, CYAN, *str, RESET);
 				}
 				++i;
 			}
@@ -548,26 +548,95 @@ static int detectbrackets(char **str)
 	return lookupfunction(str);
 }
 
+static void transform_in_power(char **str)
+{
+	int i, j, p;
+	char *denominador, *exponente;
+
+	while (strchr(*str, '/'))
+	{
+		j = strchr(*str, '/') - *str + 1;
+		i = j;
+		if ((*str)[i] != '(')
+		{
+			if ((*str)[i] == 'i')
+				++i;
+			else
+				while (isdigit((*str)[i]) || (*str)[i] == '.')
+					++i;
+		}
+		else
+		{
+			while ((*str)[i] != ')')
+				++i;
+			++i;
+		}
+		denominador = ft_substr(*str, j, i);
+		p = 0;
+		if ((*str)[i] =='^')
+			p = ++i;
+
+		if (p != 0)
+		{
+			if ((*str)[i] != '(')
+			{
+				if ((*str)[i] == 'i')
+					++i;
+				else
+					while (isdigit((*str)[i]) || (*str)[i] == '.')
+						++i;
+			}
+			else
+			{
+				while ((*str)[i] != ')')
+					++i;
+				++i;
+			}
+			exponente = ft_substr(*str, p, i);
+		}
+		else
+			exponente = strdup("1");
+
+		char *aux = (char *)calloc(100, sizeof(char));
+		if (!aux)
+			exit(EXIT_FAILURE);
+
+		strncpy(aux, *str, j - 1);
+		strcat(aux, "*");
+		strcat(aux, denominador);
+		strcat(aux, "^(-1*");
+		strcat(aux, exponente);
+		strcat(aux, ")");
+		strcat(aux, *str+i);
+		printf("aux = %s\n", aux);
+		free(*str);
+		*str = aux;
+		free(denominador);
+		free(exponente);
+	}
+}
 
 static int check_complex_operators(char **str)
 {
-	printf("expresion : %s\n", *str);
-
 	if (!strchr(*str, 'i'))
-		return 0;
+		return 0; 
 
 	for (size_t i=0; i < strlen(*str); i++)
-	{
-		if (isalpha((*str)[i]))
-			return 0;
-	}
+		if (isalpha((*str)[i])  && (*str)[i] != 'i')
+			return 2;
 
 	if (strchr(*str, '!'))
 		return printf_error("Factorial not allowed with complex numbers", *str, 0);
-	if (strchr(*str, '/'))
-		return printf_error("Division not allowed with complex numbers", *str, 0);
 	if (strchr(*str, '%'))
 		return printf_error("Modulus not allowed with complex numbers", *str, 0);
+
+	if (strchr(*str, '/'))
+	{
+		transform_in_power(str);
+		calc(str);
+		//return printf_error("Division not allowed with complex numbers", *str, 0);
+	}
+
 	if (strchr(*str, '^'))
 		complex_power(str);
 
@@ -596,8 +665,12 @@ int	calc(char **str)
 
 	if (!onlynumbers(*str))
 	{
-		if (strchr(*str, 'i') && check_complex_operators(str))
+		e = check_complex_operators(str);
+		if (e == 1)
 			return 1;
+		if (e == 2)
+			return 0;
+		
 		if (v_calc) printf("%sREDUCING    : %s%s%s", GREEN, CYAN, *str, RESET);
 		if (onlynumbers(*str))
 			calc(str);

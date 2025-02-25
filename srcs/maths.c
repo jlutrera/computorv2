@@ -173,40 +173,38 @@ double ft_atan(double x)
     return sum;
 }
 
-static double calc_ln(double y)
-{
-	double 	term;
-	double 	sum;
-	int 	n;
-
-	
-	if (ft_abs(y) < PRECISION)
-		return y;
-
-	// Calcula ln(x) centrado en 1 usando la serie de Taylor
-	term = y;
-	sum = term;
-	n = 2;
-	while (ft_abs(term) > PRECISION)
-	{
-		term = -term * y * (n - 1) / n;
-		sum += term;
-		n++;
-	}
-	return sum;
-}
-
 double	ft_ln(double x)
 {
-	if (x == 2)
-		return LN2;
-	else if (x == 0.5)
-		return -LN2;
-    else if (x > 2)
-		return ft_ln(x / 2) + LN2;
-	else if (x < 1)
-		return -ft_ln(1 / x);
-	return calc_ln(x - 1);
+	if (x <= 0)
+		return printf_error("ln(x) no está definido para x ≤ 0", NULL, 0);
+	double resultado = 0.0;
+
+	// Reduce x a un rango cercano a 1 usando ln(x) = ln(x/2) + ln(2)
+	while (x > 2)
+	{
+		x /= 2;
+		resultado += LN2;
+	}
+	while (x < 0.5)
+	{
+		x *= 2;
+		resultado -= LN2;
+	}
+
+	// Aproximación de ln(x) para 0.5 < x ≤ 2 usando la serie de Taylor en x = 1
+	double y = (x - 1) / (x + 1);  
+	double y2 = y * y;
+	double term = y;
+	double sum = 0.0;
+	int n;
+
+	for (n = 1; n <= TAYLOR_TERMS; n += 2)
+	{
+		sum += term / n;
+		term *= y2;
+	}
+	resultado += 2 * sum;
+	return resultado;
 }
 
 double ft_log(double x)

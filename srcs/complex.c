@@ -88,19 +88,26 @@ static double *factors(char *s)
 
 static double *get_exponent(char *s, int *end)
 {
-	bool brackets = false;
+	int brackets = 0;
 	int i = strchr(s, '^') - s + 1;
 	if (s[i] == '(')
 	{
-		brackets = true;
+		brackets = 1;
 		++i;
 	}
 	int j = i;
-	while (s[j] != '\0' && (isdigit(s[j]) || s[j] == 'i' || (brackets && strchr("+-*/%!", s[j]))))
+	while (s[j] != '\0' && (isdigit(s[j]) || s[j] == '.' || s[j] == 'i' || (brackets && strchr("()+-*/%!", s[j]))))
+	{
 		j++;
-	
+		if (s[j] == '(')
+			++brackets;
+		else if (s[j] == ')')
+			--brackets;
+
+	}
 	char *aux = ft_substr(s, i, j);
 	double *e = factors(aux);
+	printf("aux exponente = %s\n", aux);
 	free(aux);
 	*end = j + brackets;
 	printf("expo = %.2f + %.2fi\n", e[0], e[1]);
@@ -109,20 +116,27 @@ static double *get_exponent(char *s, int *end)
 
 static double *get_base(char *s, int *start)
 {
-	bool brackets = false;
+	int brackets = 0;
 	int i = strchr(s, '^') - s - 1;
 	if (s[i] == ')')
 	{
-		brackets = true;
+		brackets = 1;
 		--i;
 	}
 	int j = i;
-	while (j > 0 && (isdigit(s[j]) || s[j] == 'i' || (brackets && strchr("+-*/%!", s[j]))))
+	while (j > 0 && (isdigit(s[j]) || s[j] == '.' || s[j] == 'i' || (brackets && strchr("()+-*/%!", s[j]))))
+	{
 		--j;
-	printf(" s[j] = %c\n", s[j]);
-	if (!brackets && (s[j] == '-' || s[j] == '+'))
+		if (s[j] == '(')
+			--brackets;
+		else if (s[j] == ')')
+			++brackets;	
+
+	}
+	if (s[j] == '(')
 		++j;
 	char *aux = ft_substr(s, j, i+1);
+	printf("aux base = %s\n", aux);
 	double *b = factors(aux);
 	free(aux);
 	*start = j - brackets;
@@ -221,6 +235,7 @@ void	complex_power(char **str)
 
 	base = get_base(*str, &start);
 	expo = get_exponent(*str, &end);
+	printf("base = (%.2f, %.2f)    exponente  = (%.2f, %.2f)\n", base[0], base[1], expo[0], expo[1]);
 	r = module(base);
 	t = argument(base);
 	complex1 = real_part(expo[0], r, t);
@@ -231,14 +246,14 @@ void	complex_power(char **str)
 	if (!aux)
 		exit(EXIT_FAILURE);
 	strncat(aux, *str, start);
-	printf(" str[star-1] = %c\n", (*str)[start-1]);
-	if (start > 0 && (*str)[start-1] != '-' && (*str)[start-1] != '+')
+	// if (start > 0)	printf(" start = %d  str[star-1] = %c\n", start, (*str)[start-1]);
+	if (start > 0 && (*str)[start-1] != '-' && (*str)[start-1] != '+' && (*str)[start-1] != '*')
 		strcat(aux, "+");
 	strcat(aux, complex1);
 	strcat(aux, "*");
 	strcat(aux, complex2);
 	strcat(aux, *str + end);
-	printf("Resultado de aux = %s\n", aux);
+	// printf("Resultado de aux = %s\n", aux);
 	free(complex1);
 	free(complex2);
 	free(*str);

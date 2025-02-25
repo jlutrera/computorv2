@@ -12,28 +12,31 @@
 
 #include "computor.h"
 
-char detect_variable(char *s)
+static char detect_variable(char *s)
 {
-	char c = 0;
-	while (*s)
+	char	c = 0;
+	int		i = 0;
+	while (s[i])
 	{
-		if (isalpha(*s))
+		if (isalpha(s[i]) && s[i] != 'i')
 		{
 			if (c == 0)
-				c = *s;
-			else if (c != *s)
+				c = s[i];
+			else if (c != s[i] )
 			{
 				if (v_calc)
-					printf("More than one variable\n");
+					printf("\n   Detected more than one variable\n");
 				return 0;
 			}
 		}
-		s++;
+		i++;
 	}
+	if (strchr(s, 'i') && c == 0)
+		c = 'i';
 	return c;
 }
 
-double *get_factors(char *s, int *g, char c)
+static double *get_factors(char *s, int *g, char c)
 {
 	int i;
 	int sign;
@@ -107,7 +110,7 @@ double *get_factors(char *s, int *g, char c)
 	return factors;
 }
 
-char *multiply(char *m1, char *m2, char c)
+static char *multiply(char *m1, char *m2, char c)
 {
 	int grade_max1 = 0;
 	int grade_max2 = 0;
@@ -203,7 +206,7 @@ char *multiply(char *m1, char *m2, char c)
 	return m;
 }
 
-char *divide(char *m1, char *m2, char c)
+static char *divide(char *m1, char *m2, char c)
 {
 	int grade_max1 = 0;
 	int grade_max2 = 0;
@@ -295,17 +298,18 @@ char *divide(char *m1, char *m2, char c)
 	return m;
 }
 
-char *algebraic_calc(char *s)
+static char *algebraic_calc(char *s)
 {
-	int index_operation;
-	int start;
-	int end;
-	char *m;
-	char c = detect_variable(s);
-	char *m1;
-	char *m2;
-	int i, j;
+	int 	index_operation;
+	int 	start;
+	int 	end;
+	char	*m;
+	char 	c;
+	char 	*m1;
+	char 	*m2;
+	int 	i, j;
 
+	c = detect_variable(s);
 	if (c == 0)
 	{
 		char *aux = (char *)calloc(strlen(s)+1, sizeof(char));
@@ -314,11 +318,13 @@ char *algebraic_calc(char *s)
 		strcpy(aux, s);
 		return (aux);
 	}
+
 	//Copia de la cadena s sin espacios
 	char *new_s = (char *)calloc(strlen(s)+1, sizeof(char));
 	if (!new_s)
 		exit(EXIT_FAILURE);
 	strcat(new_s, s);
+
 	while (1)
 	{
 		int p = strchr(new_s, '*') - new_s;

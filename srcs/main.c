@@ -15,6 +15,8 @@
 bool	v_calc = false;
 bool	plotting = false;
 
+
+
 static void	renewprompt(int sig)
 {
 	(void)sig;
@@ -58,7 +60,6 @@ int	main(int argc, char **argv)
 		input = readline(prompt);
 		if (input)
 		{
-			//if (*input)
 			finish = parse(&input, &token_list);
 			free(input);
 		}
