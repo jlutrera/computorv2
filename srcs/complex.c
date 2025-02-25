@@ -133,7 +133,7 @@ static double *get_base(char *s, int *start)
 			++brackets;	
 
 	}
-	if (s[j] == '(')
+	if (strchr("()+-*/%!", s[j]))
 		++j;
 	char *aux = ft_substr(s, j, i+1);
 	printf("aux base = %s\n", aux);
@@ -245,15 +245,17 @@ void	complex_power(char **str)
 	char *aux = (char *)calloc(100, sizeof(char));
 	if (!aux)
 		exit(EXIT_FAILURE);
+
+	if (start > 0 && (*str)[start-1] == '(')
+		--start;
 	strncat(aux, *str, start);
-	// if (start > 0)	printf(" start = %d  str[star-1] = %c\n", start, (*str)[start-1]);
-	if (start > 0 && (*str)[start-1] != '-' && (*str)[start-1] != '+' && (*str)[start-1] != '*')
-		strcat(aux, "+");
+	printf(" start = %d  str[star] = %c\n", start, (*str)[start]);
+
 	strcat(aux, complex1);
 	strcat(aux, "*");
 	strcat(aux, complex2);
-	strcat(aux, *str + end);
-	// printf("Resultado de aux = %s\n", aux);
+	strcat(aux, *str + end + 1);
+	printf("Resultado de aux = %s\n", aux);
 	free(complex1);
 	free(complex2);
 	free(*str);
