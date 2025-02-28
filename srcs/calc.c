@@ -608,7 +608,6 @@ static void transform_in_power(char **str)
 		strcat(aux, exponente);
 		strcat(aux, ")");
 		strcat(aux, *str+i);
-		printf("aux = %s\n", aux);
 		free(*str);
 		*str = aux;
 		free(denominador);

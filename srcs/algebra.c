@@ -315,6 +315,7 @@ static char *algebraic_calc(char *s)
 		if (!aux)
 			exit(EXIT_FAILURE);
 		strcpy(aux, s);
+		calc(&aux);
 		return (aux);
 	}
 

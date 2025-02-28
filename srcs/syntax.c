@@ -25,9 +25,14 @@ static bool iscommandword(char *token)
 
 static int isnotnumber(char *s)
 {
-	int i = -1;
+	int i;
+
+	if (s[0] == '-')
+		i = 0;
+	else
+		i = -1;
 	while (s[++i])
-		if (!isdigit(s[i]))
+		if (!isdigit(s[i]) && s[i] != '.')
 			return 1;
 	return 0;
 }
