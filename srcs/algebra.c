@@ -18,7 +18,7 @@ static char detect_variable(char *s)
 	int		i = 0;
 	while (s[i])
 	{
-		if (isalpha(s[i]) && s[i] != 'i')
+		if (isalpha(s[i]))
 		{
 			if (c == 0)
 				c = s[i];
@@ -31,8 +31,8 @@ static char detect_variable(char *s)
 		}
 		i++;
 	}
-	if (strchr(s, 'i') && c == 0)
-		c = 'i';
+	
+	printf("detect_variable = %c\n", c);
 	return c;
 }
 
@@ -329,7 +329,7 @@ static char *algebraic_calc(char *s)
 	{
 		int p = strchr(new_s, '*') - new_s;
 		int d = strchr(new_s, '/') - new_s;
-
+		printf("s2 = %s\n", new_s);
 		// Si no hay multiplicaciones ni divisiones, devuelvo la cadena reducida = mutiplicada por 1
 		if (p < 0 && d < 0)
 		{
@@ -337,6 +337,7 @@ static char *algebraic_calc(char *s)
 			free(new_s);
 			if (m[0] == 0)
 				m[0] = '0';
+			printf("m = %s\n", m);
 			return m;
 		}
 
@@ -367,7 +368,7 @@ static char *algebraic_calc(char *s)
 			if (start > 0)
 				--i;
 			start++;
-			end = index_operation - 2;
+			end = index_operation - 1;
 		}
 		else if (new_s[index_operation - 1] == ']' )
 		{
@@ -387,13 +388,18 @@ static char *algebraic_calc(char *s)
 		else
 		{
 			start = index_operation - 1;
-			end = start;
+			end = start+1;
 			while (new_s[start] != '+' && new_s[start] != '-' && start > 0)
 				start--;
 			i = start;
 		}
-		strncat(m1, new_s+start, end - start + 1);
-
+		strncat(m1, new_s+start, end - start);
+		printf("m1 		= %s\n", m1);
+		if (onlydigits(m1))
+			calc(&m1);
+		else if (strchr(m1, '('))
+			calc_with_variables(&m1);
+		printf("m1 	despues	= %s\n", m1);
 		// Determina los índices del segundo multiplicando
 		if (new_s[index_operation + 1] == '(')
 		{
@@ -438,14 +444,12 @@ static char *algebraic_calc(char *s)
 			j = end-1;
 		}
 		strncat(m2, new_s+start+1, end-start-1);
-		//Si el segundo multiplicando contiene una multiplicación o división
-		// y está entre paréntesis, hago llamada recursiva
-		if ((strchr(m2, '*') || strchr(m2, '/')) && new_s[index_operation + 1] == '(')
-		{
-			char *aux = algebraic_calc(m2);
-			free(m2);
-			m2 = aux;
-		}
+		printf("m2 		= %s\n", m2);
+		if (onlydigits(m2))
+			calc(&m2);
+		else if (strchr(m2, '('))
+			calc_with_variables(&m2);
+		printf("m2 	despues	= %s\n", m2);
 		
 		//Realizo la operación
 		if (new_s[index_operation] == '*')
@@ -497,6 +501,10 @@ static char *algebraic_calc(char *s)
 		free(m1);
 		free(m2);
 		free(m);
+		
+		printf("s2 		antes= %s\n", temp);
+		calc_with_variables(&temp);
+		printf("s2 		despues= %s\n", temp);
 		free(new_s);
 		new_s = temp;
 	}
@@ -658,9 +666,9 @@ void calc_with_variables(char **str)
 				remove_spaces(*str);
 			}
 			i = strchr(*str+i+1, '(') - (*str);
-			
 		}
 	}
+	printf("str = %s\n", *str);
 	if (exponents_are_integer(*str))
 	{
 		char *aux = algebraic_calc(*str);

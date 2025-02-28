@@ -526,10 +526,10 @@ static int detectbrackets(char **str)
 							--start;
 							++i;
 						}
-						update_result(str, start, i, substr);
-						resolvedoblesigne(str);
-						i = start + strlen(substr);
 					}
+					update_result(str, start, i, substr);
+					resolvedoblesigne(str);
+					i = start + strlen(substr);
 
 					free(substr);
 					if (strchr(*str, '[') && strchr(*str, ')'))
