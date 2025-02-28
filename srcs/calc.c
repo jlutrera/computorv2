@@ -634,12 +634,14 @@ static int check_complex_operators(char **str)
 	{
 		transform_in_power(str);
 		calc(str);
-		//return printf_error("Division not allowed with complex numbers", *str, 0);
 	}
 
-	if (strchr(*str, '^'))
-		complex_power(str);
-
+	while (strchr(*str, '^') && strchr(*str, 'i'))
+	{
+		calc_with_variables(str);
+		if (strchr(*str, '^'))
+			complex_power(str);
+	}
 	return 0;
 }
 
@@ -672,11 +674,17 @@ int	calc(char **str)
 			return 0;
 		
 		if (v_calc) printf("%sREDUCING    : %s%s%s", GREEN, CYAN, *str, RESET);
+		bool temp = v_calc;
+		v_calc = false;
 		if (onlynumbers(*str))
 			calc(str);
 		else
 			calc_with_variables(str);
+		v_calc = temp;
 		if (v_calc) printf(" => %s%s%s\n", CYAN, *str, RESET);
+		
+		if (onlynumbers(*str))
+			calc(str);
 		return 0;
 	}
 	

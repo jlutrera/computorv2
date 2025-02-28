@@ -275,7 +275,6 @@ static void plot_function(t_data *data)
 	int		first_point = 1;
 
 	s = count_x(data->function);
-	plotting = true;
 	draw_axes(data);
 
 	char *aux = doubletostr(data->zoom / 10);
@@ -516,7 +515,9 @@ bool plot(char *input)
 		free(function);
 		return printf_error("Bad function expression.", NULL, -1);
 	}
+	plotting = true;
 	draw(function);
+	plotting = false;
 	free(function);
 
 	return 1;

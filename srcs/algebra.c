@@ -119,7 +119,6 @@ static char *multiply(char *m1, char *m2, char c)
 	factors1 = get_factors(m1, &grade_max1, c);
 	double *factors2;
 	factors2 = get_factors(m2, &grade_max2, c);
-
 	double *factors_r = (double *)calloc(grade_max1+grade_max2+1, sizeof(double));
 	if (!factors_r)
 		exit(EXIT_FAILURE);
@@ -438,7 +437,6 @@ static char *algebraic_calc(char *s)
 			j = end-1;
 		}
 		strncat(m2, new_s+start+1, end-start-1);
-		
 		//Si el segundo multiplicando contiene una multiplicación o división
 		// y está entre paréntesis, hago llamada recursiva
 		if ((strchr(m2, '*') || strchr(m2, '/')) && new_s[index_operation + 1] == '(')
@@ -534,12 +532,14 @@ static int whereistheclosingbracket(char *str, int i)
 	int 	b;
 
 	b = 1;
-	while (str[i] && b != 0)
+	while (str[i])
 	{
 		b = b + (str[i] == '(') - (str[i] == ')');
+		if (b == 0)
+			break;
 		++i;
 	}
-	return --i;
+	return i;
 }
 
 static int exponents_are_integer(char *s)
@@ -558,7 +558,7 @@ static int exponents_are_integer(char *s)
 			return 0;
 		while(isdigit(s[i]) || (brackets && strchr("+-*/%!", s[i])))
 			++i;
-		if (s[i] == '.' || isalpha(s[i]))
+		if (s[i] == '.' || isalpha(s[i]) || s[i] == '^')
 			return 0;
 		i = strchr(s+i, '^') - s;
 	}
@@ -572,13 +572,11 @@ void calc_with_variables(char **str)
 	char 	*newp;
 	int 	num_exp;
 	
-	i = strchr(*str, '(') - (*str);
+	i = strchr(*str, '(') - *str;
 	if (i >= 0)
 	{
 		j = whereistheclosingbracket(*str, i + 1);
-		
 		newp = ft_substr(*str, i+1, j);
-		
 		if (strchr(newp, '('))
 		{
 			calc_with_variables(&newp);
@@ -657,19 +655,11 @@ void calc_with_variables(char **str)
 				free(exponent);
 				free(newstr);
 				remove_spaces(*str);
-				if (num_exp > 0)
-				{
-					char *aux2 = algebraic_calc(*str);
-					if (!aux2)
-						exit(EXIT_FAILURE);
-					free(*str);
-					*str = aux2;
-				}
 			}
 			i = strchr(*str+i+1, '(') - (*str);
+			
 		}
 	}
-	
 	if (exponents_are_integer(*str))
 	{
 		char *aux = algebraic_calc(*str);

@@ -243,7 +243,7 @@ int	compute(char **s, t_token **list, char *token)
 	char	*var;
 	char	variable[2] = {0}; //En el caso de que haya función
 
-	if (token)
+	if (!token)
 	{
 		i = strchr(*s, '(') - *s;
 		if (i > 0)
@@ -288,15 +288,7 @@ int	compute(char **s, t_token **list, char *token)
 			var = ft_substr(*s, j, bracket);
 			cvar = search_content_in_functions(var, list);
 			if (cvar)
-			{
-				if (( strchr(cvar, '(') && compute(&cvar, list, token) == 1) ||
-				    (!strchr(cvar, '(') && compute(&cvar, list, NULL)  == 1))
-				{
-					free(cvar);
-					free(var);
-					return 1;
-				}
-
+			{			
 				change_content(s, j, bracket, cvar);
 				i = 0;
 				free(cvar);
