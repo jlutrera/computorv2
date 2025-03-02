@@ -65,8 +65,7 @@ static void	add_token_to_list(t_token **list, char *token, char *content)
 	bool	foundsamefunction;
 
 	new_token = (t_token *)calloc(sizeof(t_token), 1);
-	if (!new_token)
-		exit(EXIT_FAILURE);
+	if (!new_token) exit(EXIT_FAILURE);
 
 	cpycontent = ft_substr(content, 0, strlen(content));
 	cpytoken = ft_substr(token, 0, strlen(token));
@@ -90,7 +89,7 @@ static void	add_token_to_list(t_token **list, char *token, char *content)
 			if (strchr(ptr->token, '(') && strchr(cpytoken, '('))
 			{
 				functionname = ft_substr(ptr->token, 0, strchr(ptr->token, '(') - ptr->token);
-				foundsamefunction =  !strcmp(functionname, functionname_cpytoken);
+				foundsamefunction = !strcmp(functionname, functionname_cpytoken);
 				free(functionname);
 				if (foundsamefunction)
 					break;
@@ -159,8 +158,7 @@ static void	ft_add_history(char *token, char *content, char *result)
 
 	len = strlen(token) + strlen(content) + 10 + strlen(result);
 	history = (char *)malloc(len * sizeof(char));
-	if (!history)
-		exit(EXIT_FAILURE);
+	if (!history) exit(EXIT_FAILURE);
 	
 	strcpy(history, token);
 	if (strlen(content) != 0)

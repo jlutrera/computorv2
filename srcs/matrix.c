@@ -17,13 +17,11 @@ static double **creatematrixdouble(int r)
 	double **result;
 
 	result = (double **)malloc(r * sizeof(double *));
-	if (!result)
-		exit(EXIT_FAILURE);
+	if (!result) exit(EXIT_FAILURE);
 	for (int i = 0; i < r; i++)
 	{
 		result[i] = (double *)malloc(r * sizeof(double));
-		if (!result[i])
-			exit(EXIT_FAILURE);
+		if (!result[i]) exit(EXIT_FAILURE);
 	}
 	return result;
 }
@@ -111,13 +109,11 @@ static char ***addmatrix(char ***m, char ***m2, int r, int c)
 	double	add;
 
 	result = (char ***)malloc(r * sizeof(char **));
-	if (!result)
-		exit(EXIT_FAILURE);
+	if (!result) exit(EXIT_FAILURE);
 	for (int i = 0; i < r; i++)
 	{
 		result[i] = (char **)malloc(c * sizeof(char *));
-		if (!result[i])
-			exit(EXIT_FAILURE);
+		if (!result[i]) exit(EXIT_FAILURE);
 		for (int j = 0; j < c; j++)
 		{
 			add = strtod(m[i][j], NULL) + strtod(m2[i][j], NULL);
@@ -133,8 +129,7 @@ static char ***submatrix(char ***m, char ***m2, int r, int c)
 	double	subst;
 
 	result = (char ***)malloc(r * sizeof(char **));
-	if (!result)
-		exit(EXIT_FAILURE);
+	if (!result) exit(EXIT_FAILURE);
 	for (int i = 0; i < r; i++)
 	{
 		result[i] = (char **)malloc(c * sizeof(char *));
@@ -155,13 +150,11 @@ static char ***multmatrix(char ***m, char ***m2, int r, int c, int c2)
 	double	item;
 
 	result = (char ***)malloc(r * sizeof(char **));
-	if (!result)
-		exit(EXIT_FAILURE);
+	if (!result) exit(EXIT_FAILURE);
 	for (int i = 0; i < r; i++)
 	{
 		result[i] = (char **)malloc(c2 * sizeof(char *));
-		if (!result[i])
-			exit(EXIT_FAILURE);
+		if (!result[i]) exit(EXIT_FAILURE);
 		for (int j = 0; j < c2; j++)
 		{
 			item = 0;
@@ -191,13 +184,11 @@ static char ***multescalarmatrix(char ***m, int r, int c, double digit)
 	double	product;
 
 	result = (char ***)malloc(r * sizeof(char **));
-	if (!result)
-		exit(EXIT_FAILURE);
+	if (!result) exit(EXIT_FAILURE);
 	for (int i = 0; i < r; i++)
 	{
 		result[i] = (char **)malloc(c * sizeof(char *));
-		if (!result[i])
-			exit(EXIT_FAILURE);
+		if (!result[i]) exit(EXIT_FAILURE);
 		for (int j = 0; j < c; j++)
 		{
 			product = strtod(m[i][j], NULL) * digit;
@@ -213,13 +204,11 @@ static char ***divescalarmatrix(char ***m, int r, int c, double digit)
 	double	division;
 
 	result = (char ***)malloc(r * sizeof(char **));
-	if (!result)
-		exit(EXIT_FAILURE);
+	if (!result) exit(EXIT_FAILURE);
 	for (int i = 0; i < r; i++)
 	{
 		result[i] = (char **)malloc(c * sizeof(char *));
-		if (!result[i])
-			exit(EXIT_FAILURE);
+		if (!result[i]) exit(EXIT_FAILURE);
 		for (int j = 0; j < c; j++)
 		{
 			division = strtod(m[i][j], NULL) / digit;
@@ -278,8 +267,7 @@ static char ***invertmatrix(char ***m, int r)
 	for (int i = 0; i < r; i++)
 	{
 		result[i] = (char **)malloc(r * sizeof(char *));
-		if (!result[i])
-			exit(EXIT_FAILURE);
+		if (!result[i]) exit(EXIT_FAILURE);
 		for (int j = 0; j < r; j++)
 			result[i][j] = doubletostr(inverse[i][j]);
 	}
@@ -395,13 +383,11 @@ char	***create_matrix(char *str, int r, int c)
 	char ***m;
 
 	m = (char ***)malloc(r * sizeof(char **));
-	if (!m)
-		exit(EXIT_FAILURE);
+	if (!m) exit(EXIT_FAILURE);
 	for (int i = 0; i < r; i++)
 	{
 		m[i] = (char **)malloc(c * sizeof(char *));
-		if (!m[i])
-			exit(EXIT_FAILURE);
+		if (!m[i]) exit(EXIT_FAILURE);
 	}
 
 	while (str[k])
@@ -863,8 +849,7 @@ static void ft_sustituye(char **str, char *aux, int j, int k)
 	char *newstr;
 
 	newstr = (char *)calloc((strlen(*str) - k + j + strlen(aux) + 1), sizeof(char));
-	if (!newstr)
-		exit(EXIT_FAILURE);
+	if (!newstr) exit(EXIT_FAILURE);
 	strncpy(newstr, *str, j);
 	strcat(newstr, aux);
 	if (k < (int)strlen(*str))
@@ -935,8 +920,7 @@ int calc_with_matrices(char **str)
 			if (v_calc) printf("   Result = %s%s%s\n", GREEN, result, RESET);
 			
 			newstr = (char *)calloc((strlen(*str) - k + j + strlen(result) + 1), sizeof(char));
-			if (!newstr)
-				exit(EXIT_FAILURE);
+			if (!newstr) exit(EXIT_FAILURE);
 			strncpy(newstr, *str, j);
 			strcat(newstr, result);
 			if (k < (int)strlen(*str))

@@ -39,8 +39,7 @@ char	*doubletostr(double d)
 	char *aux;
 
 	aux = malloc(100);
-	if (!aux)
-		exit(EXIT_FAILURE);
+	if (!aux) exit(EXIT_FAILURE);
 	if (isinteger(d))
 		sprintf(aux,"%0.0f", d);
 	else
@@ -163,8 +162,7 @@ char *ft_substr(const char *src, size_t i, size_t j)
 	size_t	n;
 
 	dest = (char *)malloc((j -i + 1) * sizeof(char));
-	if (!dest)
-		exit(EXIT_FAILURE);
+	if (!dest) exit(EXIT_FAILURE);
 
 	for (n = 0; n < j - i  && src[n + i] != '\0'; n++)
 		dest[n] = src[n + i];

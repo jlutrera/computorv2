@@ -263,8 +263,7 @@ static void update_result(char **str, int start, int end, char *aux)
 	char 	*temp;
 	
 	temp = (char*)calloc(strlen(*str) + strlen(aux), sizeof(char));
-	if (!temp)
-		exit(EXIT_FAILURE);
+	if (!temp) exit(EXIT_FAILURE);
 
 	strncat(temp, *str, start);
 	strcat(temp, aux);
@@ -550,8 +549,8 @@ static int detectbrackets(char **str)
 
 static void transform_in_power(char **str)
 {
-	int i, j, p;
-	char *denominador, *exponente;
+	int		i, j, p;
+	char	*denominador, *exponente;
 
 	while (strchr(*str, '/'))
 	{
@@ -598,8 +597,7 @@ static void transform_in_power(char **str)
 			exponente = strdup("1");
 
 		char *aux = (char *)calloc(100, sizeof(char));
-		if (!aux)
-			exit(EXIT_FAILURE);
+		if (!aux) exit(EXIT_FAILURE);
 
 		strncpy(aux, *str, j - 1);
 		strcat(aux, "*");

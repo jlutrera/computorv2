@@ -24,29 +24,25 @@ static char detect_variable(char *s)
 				c = s[i];
 			else if (c != s[i] )
 			{
-				if (v_calc)
-					printf("\n   Detected more than one variable\n");
+				if (v_calc) printf("\n   Detected more than one variable\n");
 				return 0;
 			}
 		}
 		i++;
 	}
-	
-	printf("detect_variable = %c\n", c);
 	return c;
 }
 
 static double *get_factors(char *s, int *g, char c)
 {
-	int i;
-	int sign;
-	double factor;
-	int grade;
-	double *factors;
+	int		i;
+	int		sign;
+	double	factor;
+	int		grade;
+	double	*factors;
 	
 	factors = (double *)calloc(100, sizeof(double));
-	if (!factors)
-		exit(EXIT_FAILURE);
+	if (!factors) exit(EXIT_FAILURE);
 
 	i = 0;
 	sign = 1;
@@ -119,9 +115,9 @@ static char *multiply(char *m1, char *m2, char c)
 	factors1 = get_factors(m1, &grade_max1, c);
 	double *factors2;
 	factors2 = get_factors(m2, &grade_max2, c);
+	
 	double *factors_r = (double *)calloc(grade_max1+grade_max2+1, sizeof(double));
-	if (!factors_r)
-		exit(EXIT_FAILURE);
+	if (!factors_r) exit(EXIT_FAILURE);
 
 	double r;
 	for (int i=0; i<= grade_max1; i++)
@@ -147,8 +143,7 @@ static char *multiply(char *m1, char *m2, char c)
 	}
 
 	char *m = (char *)calloc(100, sizeof(char));
-	if (!m)
-		exit(EXIT_FAILURE);
+	if (!m) exit(EXIT_FAILURE);
 	
 	for (int i=0; i<= (grade_max1+grade_max2); i++)
 	{
@@ -214,9 +209,9 @@ static char *divide(char *m1, char *m2, char c)
 	factors1 = get_factors(m1, &grade_max1, c);
 	double *factors2;
 	factors2 = get_factors(m2, &grade_max2, c);
+	
 	double *factors_r = (double *)calloc(grade_max1-grade_max2+1, sizeof(double));
-	if (factors_r == NULL)
-		exit(EXIT_FAILURE);
+	if (factors_r == NULL) exit(EXIT_FAILURE);
 	
 	int grade_div = grade_max1-grade_max2;
 	int grade_top = grade_max1;
@@ -239,8 +234,7 @@ static char *divide(char *m1, char *m2, char c)
 		return "Division not exact";
 	}
 	char *m = (char *)calloc(100, sizeof(char));
-	if (!m)
-		exit(EXIT_FAILURE);
+	if (!m) exit(EXIT_FAILURE);
 	
 	for (int i=0; i<= grade_max1 - grade_max2; i++)
 	{
@@ -312,8 +306,7 @@ static char *algebraic_calc(char *s)
 	if (c == 0)
 	{
 		char *aux = (char *)calloc(strlen(s)+1, sizeof(char));
-		if (!aux)
-			exit(EXIT_FAILURE);
+		if (!aux) exit(EXIT_FAILURE);
 		strcpy(aux, s);
 		calc(&aux);
 		return (aux);
@@ -321,15 +314,13 @@ static char *algebraic_calc(char *s)
 
 	//Copia de la cadena s sin espacios
 	char *new_s = (char *)calloc(strlen(s)+1, sizeof(char));
-	if (!new_s)
-		exit(EXIT_FAILURE);
+	if (!new_s)	exit(EXIT_FAILURE);
 	strcat(new_s, s);
 
 	while (1)
 	{
 		int p = strchr(new_s, '*') - new_s;
 		int d = strchr(new_s, '/') - new_s;
-		printf("s2 = %s\n", new_s);
 		// Si no hay multiplicaciones ni divisiones, devuelvo la cadena reducida = mutiplicada por 1
 		if (p < 0 && d < 0)
 		{
@@ -337,17 +328,14 @@ static char *algebraic_calc(char *s)
 			free(new_s);
 			if (m[0] == 0)
 				m[0] = '0';
-			printf("m = %s\n", m);
 			return m;
 		}
 
 		//Cadenas auxiliares para almacenar los multiplicandos, o dividendo y divisor
 		m1 = (char *)calloc(strlen(new_s), sizeof(char));
-		if (!m1)
-			exit(EXIT_FAILURE);
+		if (!m1) exit(EXIT_FAILURE);
 		m2 = (char *)calloc(strlen(new_s), sizeof(char));
-		if (!m2)
-			exit(EXIT_FAILURE);
+		if (!m2) exit(EXIT_FAILURE);
 
 		// Busca la primera multiplicación
 		if ((p > 0 && d < 0) || (p > 0 && d > 0 && p < d) )
@@ -361,9 +349,7 @@ static char *algebraic_calc(char *s)
 		{
 			start = index_operation;
 			while (new_s[start] != '(')
-			{
 				start--;
-			}
 			i = start;
 			if (start > 0)
 				--i;
@@ -394,12 +380,11 @@ static char *algebraic_calc(char *s)
 			i = start;
 		}
 		strncat(m1, new_s+start, end - start);
-		printf("m1 		= %s\n", m1);
 		if (onlydigits(m1))
 			calc(&m1);
 		else if (strchr(m1, '('))
 			calc_with_variables(&m1);
-		printf("m1 	despues	= %s\n", m1);
+
 		// Determina los índices del segundo multiplicando
 		if (new_s[index_operation + 1] == '(')
 		{
@@ -439,17 +424,15 @@ static char *algebraic_calc(char *s)
 		{
 			start = index_operation;
 			end = index_operation + 1;
-			while (new_s[end] != '+' && new_s[end] != '-' && new_s[end] != '*' && new_s[end] != '/' && new_s[end] != '\0')
+			while (!strchr("+-*/", new_s[end]) && new_s[end] != '\0')
 				end++;
 			j = end-1;
 		}
 		strncat(m2, new_s+start+1, end-start-1);
-		printf("m2 		= %s\n", m2);
 		if (onlydigits(m2))
 			calc(&m2);
 		else if (strchr(m2, '('))
 			calc_with_variables(&m2);
-		printf("m2 	despues	= %s\n", m2);
 		
 		//Realizo la operación
 		if (new_s[index_operation] == '*')
@@ -484,8 +467,7 @@ static char *algebraic_calc(char *s)
 		}
 		//Reemplazo la operación que se ha hecho por el resultado
 		char *temp = (char *)calloc(100, sizeof(char));
-		if (!temp)
-			exit(EXIT_FAILURE);
+		if (!temp) exit(EXIT_FAILURE);
 		strncpy(temp, new_s, i);
 		if (new_s[i] == '-' && new_s[i+1] == '(')
 			strcat(temp, "-1*(");
@@ -501,10 +483,8 @@ static char *algebraic_calc(char *s)
 		free(m1);
 		free(m2);
 		free(m);
-		
-		printf("s2 		antes= %s\n", temp);
+
 		calc_with_variables(&temp);
-		printf("s2 		despues= %s\n", temp);
 		free(new_s);
 		new_s = temp;
 	}
@@ -640,8 +620,7 @@ void calc_with_variables(char **str)
 					return;
 				}
 				char *newstr = (char *)calloc(strlen(*str) * (num_exp + 2)+ 1, sizeof(char));
-				if (!newstr)
-					exit(EXIT_FAILURE);
+				if (!newstr) exit(EXIT_FAILURE);
 				while (num_exp > 1)
 				{
 					strcat(newstr, base);
@@ -651,24 +630,23 @@ void calc_with_variables(char **str)
 				strcat(newstr, base);
 		
 				char *aux = (char *)calloc(100, sizeof(char));
-				if (!aux)
-					exit(EXIT_FAILURE);
+				if (!aux) exit(EXIT_FAILURE);
 				strncpy(aux, *str, i);
 				strcat(aux, newstr);
 				strcat(aux, *str + j + 1);
-
-				free(*str);
-				*str = aux;
 				
 				free(base);
 				free(exponent);
 				free(newstr);
+
+				free(*str);
+				*str = aux;
 				remove_spaces(*str);
 			}
 			i = strchr(*str+i+1, '(') - (*str);
 		}
 	}
-	printf("str = %s\n", *str);
+
 	if (exponents_are_integer(*str))
 	{
 		char *aux = algebraic_calc(*str);

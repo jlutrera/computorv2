@@ -220,8 +220,7 @@ static double evaluate_function(const char *f, double x, int *error, int s)
 
 	char *aux = doubletostr(x);
 	newf = (char *)calloc(strlen(f) + s * (strlen(aux) + 3) + 1, sizeof(char));
-	if (!newf)
-		exit(EXIT_FAILURE);
+	if (!newf) exit(EXIT_FAILURE);
 	int i = 0;
 	int k = 0;
 

@@ -63,8 +63,7 @@ static int change_content(char **s, int j, int i, char *dest)
 
 	new_len = len_s - (i - j) + len_dest + 2 + extra;
 	new_str = (char *)calloc((new_len + 1), sizeof(char));
-	if (!new_str)
-		exit(EXIT_FAILURE);
+	if (!new_str) exit(EXIT_FAILURE);
 
 	strncpy(new_str, *s, j);
 	if (extra)
@@ -191,7 +190,7 @@ static bool cont_in_token(char *token, char *var, char *cvar, t_token **list)
 	while (ptr)
 	{
 		if (strstr(ptr->token, var) && !strcmp(token, ptr->token))
-				return 1;
+			return 1;
 		ptr = ptr->next;
 	}
 	return 0;
