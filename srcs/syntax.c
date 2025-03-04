@@ -23,19 +23,6 @@ static bool iscommandword(char *token)
 	return 0;
 }
 
-static int isnotnumber(char *s)
-{
-	int i;
-
-	if (s[0] == '-')
-		i = 0;
-	else
-		i = -1;
-	while (s[++i])
-		if (!isdigit(s[i]) && s[i] != '.')
-			return 1;
-	return 0;
-}
 static int check_matrix_row(char *r)
 {
 	int	l;
@@ -65,7 +52,7 @@ static int check_matrix_row(char *r)
 		while (!strchr(",]", r[i]))
 			++i;
 		char *word = ft_substr(r, j, i);
-		if (isnotnumber(word))
+		if (!isanumber(word))
 		{
 			free(word);
 			printf_error("Matrixes must contain only numbers", NULL, 0);

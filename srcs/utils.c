@@ -12,6 +12,20 @@
 
 #include "computor.h"
 
+void update_result(char **str, int start, int end, char *aux)
+{
+	char 	*temp;
+	
+	temp = (char*)calloc(strlen(*str) + strlen(aux), sizeof(char));
+	if (!temp) exit(EXIT_FAILURE);
+
+	strncat(temp, *str, start);
+	strcat(temp, aux);
+	strcat(temp, *str+end);
+	free(*str);
+	*str = temp;
+}
+
 int onlydigits(char *s)
 {
 	int i;
@@ -24,6 +38,48 @@ int onlydigits(char *s)
 		++i;
 	}
 	return 1;
+}
+
+bool isanumber(char *s)
+{
+	int i;
+
+	if (s[0] == '(' && s[strlen(s)-1] == ')')
+		i = 1;
+	else
+		i = 0;
+	if (s[i] == '-' || s[i] == '+')
+		++i;
+	while (s[i])
+	{
+		if (!isdigit(s[i]) && s[i] != '.')
+			break;
+		++i;
+	}
+	if (s[i] == '\0' || (s[i] == ')' && s[i+1] == '\0'))
+		return true;
+	return false;
+}
+
+char get_letter(char *s)
+{
+	char	c = 0;
+	int		i = 0;
+	while (s[i])
+	{
+		if (isalpha(s[i]))
+		{
+			if (c == 0)
+				c = s[i];
+			else if (c != s[i] )
+			{
+				if (v_calc) printf("\n   Detected more than one variable\n");
+				return 0;
+			}
+		}
+		i++;
+	}
+	return c;
 }
 
 bool isinteger(double num)

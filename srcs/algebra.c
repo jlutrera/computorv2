@@ -12,27 +12,6 @@
 
 #include "computor.h"
 
-static char detect_variable(char *s)
-{
-	char	c = 0;
-	int		i = 0;
-	while (s[i])
-	{
-		if (isalpha(s[i]))
-		{
-			if (c == 0)
-				c = s[i];
-			else if (c != s[i] )
-			{
-				if (v_calc) printf("\n   Detected more than one variable\n");
-				return 0;
-			}
-		}
-		i++;
-	}
-	return c;
-}
-
 static double *get_factors(char *s, int *g, char c)
 {
 	int		i;
@@ -125,7 +104,6 @@ static char *multiply(char *m1, char *m2, char c)
 		for (int j=0; j <= grade_max2; j++)
 		{
 			 r = factors1[i] * factors2[j];
-			 //Gestiona el caso de que haya números imaginarios
 			 if (c != 'i')
 				factors_r[i+j] += r;
 			else
@@ -302,21 +280,17 @@ static char *algebraic_calc(char *s)
 	char 	*m2;
 	int 	i, j;
 
-	c = detect_variable(s);
+	c = get_letter(s);
 	if (c == 0)
 	{
-		char *aux = (char *)calloc(strlen(s)+1, sizeof(char));
+		char *aux = strdup(s);
 		if (!aux) exit(EXIT_FAILURE);
-		strcpy(aux, s);
 		calc(&aux);
 		return (aux);
 	}
 
-	//Copia de la cadena s sin espacios
-	char *new_s = (char *)calloc(strlen(s)+1, sizeof(char));
-	if (!new_s)	exit(EXIT_FAILURE);
-	strcat(new_s, s);
-
+	char *new_s = strdup(s);
+	if (!new_s) exit(EXIT_FAILURE);
 	while (1)
 	{
 		int p = strchr(new_s, '*') - new_s;
@@ -347,13 +321,17 @@ static char *algebraic_calc(char *s)
 		// Determina los índices del primer multiplicando
 		if (new_s[index_operation - 1] == ')')
 		{
-			start = index_operation;
-			while (new_s[start] != '(')
+			start = index_operation - 1;
+			int bracket = 1;
+			while (bracket != 0)
+			{
 				start--;
-			i = start;
-			if (start > 0)
-				--i;
-			start++;
+				if (new_s[start] == ')')
+					bracket++;
+				if (new_s[start] == '(')
+					bracket--;
+			}
+			i = start++;
 			end = index_operation - 1;
 		}
 		else if (new_s[index_operation - 1] == ']' )
@@ -377,6 +355,8 @@ static char *algebraic_calc(char *s)
 			end = start+1;
 			while (new_s[start] != '+' && new_s[start] != '-' && start > 0)
 				start--;
+			if (start > 0)
+				++start;
 			i = start;
 		}
 		strncat(m1, new_s+start, end - start);
@@ -389,18 +369,16 @@ static char *algebraic_calc(char *s)
 		if (new_s[index_operation + 1] == '(')
 		{
 			int bracket = 1;
-			start = index_operation+1;
-			end = start+1;
+			start = index_operation + 1;
+			end = index_operation + 1;
 			while (bracket != 0)
 			{
+				end++;
 				if (new_s[end] == ')')
 					bracket--;
-				
 				if (new_s[end] == '(')
 					bracket++;
-				end++;
 			}
-			--end;
 			j = end;
 			
 		}
@@ -423,7 +401,7 @@ static char *algebraic_calc(char *s)
 		else
 		{
 			start = index_operation;
-			end = index_operation + 1;
+			end = index_operation + 2;
 			while (!strchr("+-*/", new_s[end]) && new_s[end] != '\0')
 				end++;
 			j = end-1;
@@ -433,7 +411,7 @@ static char *algebraic_calc(char *s)
 			calc(&m2);
 		else if (strchr(m2, '('))
 			calc_with_variables(&m2);
-		
+
 		//Realizo la operación
 		if (new_s[index_operation] == '*')
 		{
@@ -465,21 +443,23 @@ static char *algebraic_calc(char *s)
 				return new_s;
 			}
 		}
+
 		//Reemplazo la operación que se ha hecho por el resultado
 		char *temp = (char *)calloc(100, sizeof(char));
 		if (!temp) exit(EXIT_FAILURE);
 		strncpy(temp, new_s, i);
-		if (new_s[i] == '-' && new_s[i+1] == '(')
-			strcat(temp, "-1*(");
-		else if (new_s[j+1] == '*' || new_s[j+1] == '/')
-			strcat(temp, "(");
-		else if (i > 0 && m[0] != '-')
-			strcat(temp, "+");
-		strcat(temp, m);
-		if ((new_s[i] == '-' && new_s[i+1] == '(') || new_s[j+1] == '*' || new_s[j+1] == '/')
-			strcat(temp, ")");
-		strcat(temp, new_s+j+1);
 
+		if ((i > 0 && (new_s[i - 1] == '-' || m[0] == '-')) || new_s[j+1] == '*' || new_s[j+1] == '/')
+			strcat(temp, "(");
+		else if (i > 0 && m[0] != '-' && new_s[i - 1] != '-' && new_s[i - 1] != '+')
+			strcat(temp, "+");
+
+		strcat(temp, m);
+		if ((i > 0 && (new_s[i - 1] == '-' || m[0] == '-')) || new_s[j+1] == '*' || new_s[j+1] == '/')
+			strcat(temp, ")");
+
+		strcat(temp, new_s+j+1);
+		
 		free(m1);
 		free(m2);
 		free(m);

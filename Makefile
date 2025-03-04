@@ -51,6 +51,7 @@ RM 			= 	rm -rf
 # Default target
 all			: 	$(NAME)
 				@echo "Running the program:"
+				@clear
 				@./$(NAME)
 
 # Compile object files

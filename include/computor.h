@@ -108,6 +108,9 @@ bool	syntax_error_token(char *token);
 bool 	syntax_error_content(char *content, char *token);
 bool	syntax_error_equation(char *str);
 // utils.c
+void	update_result(char **str, int start, int end, char *aux);
+bool	isanumber(char *s);
+char	get_letter(char *s);
 char	*doubletostr(double d);
 char	*ft_trim(char *str);
 char	*ft_substr(const char *src, size_t i, size_t j);

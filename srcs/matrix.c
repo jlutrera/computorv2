@@ -278,14 +278,407 @@ static char ***invertmatrix(char ***m, int r)
 	return result;
 }
 
-static void print_spaces(int n)
+static char *readdigitbefore(char *str, int i, int *j)
 {
-	for (int i = 0; i < n; i++)
-		printf(" ");
+	char	*digit;
+
+	if (str[--i] == ')')
+		--i;	
+	*j = i;
+	while (*j >= 0 && (isdigit(str[*j]) || str[*j] == '.'))
+		--(*j);
+	if (*j == i)
+		return NULL;
+	if (*j > 1 && (str[*j] == '+' || str[*j] == '-') && str[*j - 1] == '(')
+		*j -= 1;
+	else if (*j != 0)
+		++(*j); 
+	digit = ft_substr(str, *j, i + 1);
+	return digit;
 }
+
+static char *readdigitafter(char *str, int i, int *k)
+{
+	char	*digit;
+	
+	if (str[++i] == '(')
+		++i;
+	if (str[i] == '+' || str[i] == '-')
+		++i;
+	*k = i;
+	while (str[*k] && (isdigit(str[*k]) || str[*k] == '.'))
+		++(*k);
+	if (*k == i)
+		return NULL;
+	digit = ft_substr(str, i, *k);
+	return digit;
+}
+
+static char *matrixtostr(char ***result, int r, int c)
+{
+	int 	length;
+	char	*aux;
+
+	length = 0;
+	for (int i = 0; i < r; ++i)
+	{
+		++length;
+		for (int j = 0; j < c; ++j)
+		{
+			length += strlen(result[i][j]);
+			++length;
+		}
+		++length;
+	}
+	++length;
+
+	aux = (char *)calloc(length + 1, sizeof(char));
+	if (!aux)
+		exit(EXIT_FAILURE);
+
+	aux[0] = '[';
+	for (int i = 0; i < r; ++i)
+	{
+		strcat(aux, "[");
+		for(int j = 0; j < c; ++j)
+		{
+			strcat(aux, result[i][j]);
+			if (j < c - 1)
+				strcat(aux, ",");
+			else
+				strcat(aux,"]");
+		}
+		if (i < r - 1)
+			strcat(aux, ";");
+		else
+			strcat(aux, "]");
+	}
+	free_matrix(result, r, c);
+	return aux;
+}
+
+static int	findmatrixoperation(int c, char *s)
+{
+	char *pos;
+	char *pos2;
+
+	switch (c)
+	{
+		case 0:
+			pos = strchr(s, '/');
+			break;
+		case 1:
+			pos = strchr(s, '^');
+			break;
+		case 2:
+			pos = strchr(s, '*');
+			pos2 = strchr(s, '#');
+			if (!pos || (pos2 && pos2 < pos))
+				pos = pos2;
+			break;
+		case 3:
+			pos = strchr(s + 1, '+');
+			if (pos && (s[pos - s - 1] == '[' || s[pos - s - 1] == ','))
+				pos = NULL;
+			pos2 = strchr(s + 1, '-');
+			if (pos2 && (s[pos2 - s - 1] == '[' || s[pos2 - s - 1] == ','))
+				pos2 = NULL;
+			if (!pos || (pos2 && pos2 < pos))
+				pos = pos2;
+			break;
+	}
+
+	if (!pos)
+		return (-1);
+	return (pos - s);
+}
+
+static char *matrixcalc(char *str, int *error)
+{
+	int		i;
+	int		j;
+	int		b;
+	int		r, r2;
+	int 	c, c2;
+	char	*digit;
+	char	*aux;
+	char	***matrix;
+	char	***matrix2 = NULL;
+	char	***result = NULL;
+
+	i = strchr(str, '[') - str;
+	j = i;
+	while (str[j])
+	{
+		if (str[j] == ']' && str[j - 1] == ']')
+			break;
+		++j;		
+	}
+	r = fixRows(str+i);
+	c = fixColumns(str+i);
+	matrix = create_matrix(str+i, r, c);
+
+	if (i > 0)
+	{
+		if (str[i - 2] == ']')
+		{
+			r2 = fixRows(str);
+			c2 = fixColumns(str);
+			matrix2 = create_matrix(str, r2, c2);
+		}
+
+		if (str[i - 1] == '*')
+		{
+			digit = readdigitbefore(str, i - 1, &j);
+			if (digit)
+			{
+				result = multescalarmatrix(matrix, r, c, strtod(digit, NULL));
+				aux = matrixtostr(result, r, c);
+				free(digit);
+				free_matrix(matrix, r, c);
+				return aux;
+			}
+			if (matrix2 && r == 1 && r2 == 1 && c == c2)
+			{
+				aux = scalarproduct(matrix2, matrix, c);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				return aux;
+			}
+			free_matrix(matrix, r, c);
+			*error = 1;
+			return NULL;
+		}
+
+		if (str[i - 1] == '/')
+		{
+			if (r != c)
+			{
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				*error = 2;
+				return NULL;
+			}
+			
+			char ***inverse;
+			inverse = invertmatrix(matrix, r);
+			if (!inverse)
+			{
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				*error = 3;
+				return NULL;
+			}
+			
+			if (v_calc) 
+			{
+				printf("Inversa:\n"); 
+				print_matrix(inverse, r, c);
+			}
+
+			digit = readdigitbefore(str, i - 1, &j);
+			if (digit)
+			{
+				char ***result;
+				result = multescalarmatrix(inverse, r, c, strtod(digit, NULL));
+				aux = matrixtostr(result, r, c);
+				free(digit);
+				free_matrix(matrix, r, c);
+				free_matrix(inverse, r, c);
+				return aux;
+			}
+			result = multmatrix(matrix2, inverse, r2, c2, c);
+			aux = matrixtostr(result, r, c);
+			free_matrix(inverse, r, c);
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			return aux;
+		}
+
+		if (str[i - 1] == '#')
+		{
+			if (matrix2 && c2 == r)
+			{
+				result = multmatrix(matrix2, matrix, r2, c2, c);
+				aux = matrixtostr(result, r2, c);
+				free_matrix(matrix2, r2, c2);
+				free_matrix(matrix, r, c);
+				return aux;
+			}
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
+		}
+		if (str[i - 1] == '+')
+		{
+			if (matrix2 && r == r2 && c == c2)
+			{
+				result = addmatrix(matrix, matrix2, r, c);
+				aux = matrixtostr(result, r, c);
+				free_matrix(matrix2, r2, c2);
+				free_matrix(matrix, r, c);
+				return aux;
+			}
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
+		}
+		if (str[i - 1] == '-')
+		{
+			if (matrix2 && r == r2 && c == c2)
+			{
+				result = submatrix(matrix2, matrix, r, c);
+				aux = matrixtostr(result, r, c);
+				free_matrix(matrix2, r2, c2);
+				free_matrix(matrix, r, c);
+				return aux;
+			}
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
+		}
+	}
+	else
+	{
+	 	b  = 1;
+		j = i + 1;
+		while (str[j] && b != 0)
+		{
+			b = b + (str[j] == '[') - (str[j] == ']');
+			++j;
+		}
+
+		if (str[j] && str[j + 1] == '[')
+		{
+			r2 = fixRows(str + j + 1);
+			c2 = fixColumns(str + j + 1);
+			matrix2 = create_matrix(str + j + 1, r2, c2);
+		}
+
+		if (str[j] == '*')
+		{
+			digit = readdigitafter(str, j, &i);
+			if (digit)
+			{
+				result = multescalarmatrix(matrix, r, c, strtod(digit, NULL));
+				aux = matrixtostr(result, r, c);
+				free(digit);
+				free_matrix(matrix, r, c);
+				return aux;
+			}
+			if (matrix2 && r == 1 && r2 == 1)
+			{
+				aux = scalarproduct(matrix, matrix2, c);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				return aux;
+			}
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
+		}
+		if (str[j] == '/')
+		{
+			digit = readdigitafter(str, j, &i);
+			if (digit)
+			{
+				result = divescalarmatrix(matrix, r, c, strtod(digit, NULL));
+				aux = matrixtostr(result, r, c);
+				free(digit);
+				free_matrix(matrix, r, c);
+				return aux;
+			}
+			
+			if (r2 != c2)
+			{
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				*error = 2;
+				return NULL;
+			}
+			char ***inverse;
+			inverse = invertmatrix(matrix2, r2);
+			if (!inverse)
+			{
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				*error = 3;
+				return NULL;
+			}
+			result = multmatrix(matrix, inverse, r, c, r2);
+			aux = matrixtostr(result, r2, c2);
+			free_matrix(inverse, r2, c2);
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			return aux;
+		}
+
+		if (str[j] == '#')
+		{
+			if (matrix2 && c == r2)
+			{
+				char ***result;
+				result = multmatrix(matrix, matrix2, r, c, c2);
+				aux = matrixtostr(result, r, c2);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				return aux;
+			}
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
+		}
+
+		if (str[j] == '+')
+		{
+			if (matrix2 && r == r2 && c == c2)
+			{
+				char ***result;
+				result = addmatrix(matrix, matrix2, r, c);
+				aux = matrixtostr(result, r, c);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				return aux;
+			}
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
+		}
+		
+		if (str[j] == '-')
+		{
+			if (matrix2 && r == r2 && c == c2)
+			{
+				char ***result;
+				result = submatrix(matrix, matrix2, r, c);
+				aux = matrixtostr(result, r, c);
+				free_matrix(matrix, r, c);
+				free_matrix(matrix2, r2, c2);
+				return aux;
+			}
+			free_matrix(matrix, r, c);
+			free_matrix(matrix2, r2, c2);
+			*error = 1;
+			return NULL;
+		}
+	}
+	free_matrix(matrix, r, c);
+	free_matrix(matrix2, r2, c2);
+	*error = 1;
+	return NULL;
+}
+
+
 void	print_matrix(char ***matrix, int r, int c)
 {
 	size_t maxlen[c];
+	void print_spaces(int n) { for (int i = 0; i < n; i++) printf(" "); }
 	
 	if (r == 1 && c == 1)
 	{
@@ -425,439 +818,6 @@ char	***create_matrix(char *str, int r, int c)
 	return m;
 }
 
-static bool checkdigitbefore(char *str, int i)
-{
-	int j;
-
-	if (str[--i] == ')')
-		--i;
-	j = i;
-	while (j >= 0 && (isdigit(str[j]) || str[j] == '.'))
-		--j;
-	return (i != j);
-}
-
-static bool checkdigitafter(char *str, int i)
-{
-	int j;
-
-	if (str[++i] == '(')
-		++i;
-	if (str[i] == '+' || str[i] == '-')
-		++i;
-	j = i;
-	while (str[j] && (isdigit(str[j]) || str[j] == '.'))
-		++j;
-	return (i != j);
-}
-
-static char *readdigitbefore(char *str, int i, int *j)
-{
-	char	*digit;
-
-	if (str[--i] == ')')
-		--i;	
-	*j = i;
-	while (*j >= 0 && (isdigit(str[*j]) || str[*j] == '.'))
-		--(*j);
-		
-	if (*j > 1 && (str[*j] == '+' || str[*j] == '-') && str[*j - 1] == '(')
-		*j -= 1;
-	else if (*j != 0)
-		++(*j); 
-	digit = ft_substr(str, *j, i + 1);
-	return digit;
-}
-
-static char *readdigitafter(char *str, int i, int *k)
-{
-	char	*digit;
-
-	if (str[i + 1] == '(')
-		++i;
-	*k = i + 1;
-	if (str[*k] == '+' || str[*k] == '-')
-		++(*k);
-	while (str[*k] && (isdigit(str[*k]) || str[*k] == '.'))
-		++(*k);
-	digit = ft_substr(str, i, *k);
-	return digit;
-}
-
-static char *matrixtostr(char ***result, int r, int c)
-{
-	int 	length;
-	char	*aux;
-
-	length = 0;
-	for (int i = 0; i < r; ++i)
-	{
-		++length;
-		for (int j = 0; j < c; ++j)
-		{
-			length += strlen(result[i][j]);
-			++length;
-		}
-		++length;
-	}
-	++length;
-
-	aux = (char *)calloc(length + 1, sizeof(char));
-	if (!aux)
-		exit(EXIT_FAILURE);
-
-	aux[0] = '[';
-	for (int i = 0; i < r; ++i)
-	{
-		strcat(aux, "[");
-		for(int j = 0; j < c; ++j)
-		{
-			strcat(aux, result[i][j]);
-			if (j < c - 1)
-				strcat(aux, ",");
-			else
-				strcat(aux,"]");
-		}
-		if (i < r - 1)
-			strcat(aux, ";");
-		else
-			strcat(aux, "]");
-	}
-	free_matrix(result, r, c);
-	return aux;
-}
-
-static int	findoperation(int c, char *s)
-{
-	char *pos;
-	char *pos2;
-
-	switch (c)
-	{
-		case 0:
-			pos = strchr(s, '/');
-			break;
-		case 1:
-			pos = strchr(s, '^');
-			break;
-		case 2:
-			pos = strchr(s, '*');
-			pos2 = strchr(s, '#');
-			if (!pos || (pos2 && pos2 < pos))
-				pos = pos2;
-			break;
-		case 3:
-			pos = strchr(s + 1, '+');
-			if (pos && (s[pos - s - 1] == '[' || s[pos - s - 1] == ','))
-				pos = NULL;
-			pos2 = strchr(s + 1, '-');
-			if (pos2 && (s[pos2 - s - 1] == '[' || s[pos2 - s - 1] == ','))
-				pos2 = NULL;
-			if (!pos || (pos2 && pos2 < pos))
-				pos = pos2;
-			break;
-	}
-
-	if (!pos)
-		return (-1);
-	return (pos - s);
-}
-
-static char *matrixcalc(char *str, int *error)
-{
-	int		i;
-	int		j;
-	int		b;
-	int		r, r2;
-	int 	c, c2;
-	char	*digit;
-	char	*aux;
-	char	***matrix;
-	char	***matrix2 = NULL;
-	char	***result = NULL;
-
-	i = strchr(str, '[') - str;
-	j = i;
-	while (str[j])
-	{
-		if (str[j] == ']' && str[j - 1] == ']')
-			break;
-		++j;		
-	}
-	r = fixRows(str+i);
-	c = fixColumns(str+i);
-	matrix = create_matrix(str+i, r, c);
-
-	if (i > 0)
-	{
-		if (str[i - 2] == ']')
-		{
-			r2 = fixRows(str);
-			c2 = fixColumns(str);
-			matrix2 = create_matrix(str, r2, c2);
-		}
-
-		if (str[i - 1] == '*')
-		{
-			if (checkdigitbefore(str, i - 1))
-			{
-				digit = readdigitbefore(str, i - 1, &j);
-				result = multescalarmatrix(matrix, r, c, strtod(digit, NULL));
-				aux = matrixtostr(result, r, c);
-				free(digit);
-				free_matrix(matrix, r, c);
-				return aux;
-			}
-			if (matrix2 && r == 1 && r2 == 1 && c == c2)
-			{
-				aux = scalarproduct(matrix2, matrix, c);
-				free_matrix(matrix, r, c);
-				free_matrix(matrix2, r2, c2);
-				return aux;
-			}
-			free_matrix(matrix, r, c);
-			*error = 1;
-			return NULL;
-		}
-
-		if (str[i - 1] == '/')
-		{
-			if (r != c)
-			{
-				free_matrix(matrix, r, c);
-				free_matrix(matrix2, r2, c2);
-				*error = 2;
-				return NULL;
-			}
-			
-			char ***inverse;
-			inverse = invertmatrix(matrix, r);
-			if (!inverse)
-			{
-				free_matrix(matrix, r, c);
-				free_matrix(matrix2, r2, c2);
-				*error = 3;
-				return NULL;
-			}
-			
-			if (v_calc) 
-			{
-				printf("Inversa:\n"); 
-				print_matrix(inverse, r, c);
-			}
-			
-			if (checkdigitbefore(str, i - 1))
-			{
-				digit = readdigitbefore(str, i - 1, &j);
-				char ***result;
-				result = multescalarmatrix(inverse, r, c, strtod(digit, NULL));
-				aux = matrixtostr(result, r, c);
-				free(digit);
-				free_matrix(matrix, r, c);
-				free_matrix(inverse, r, c);
-				return aux;
-			}
-			result = multmatrix(matrix2, inverse, r2, c2, c);
-			aux = matrixtostr(result, r, c);
-			free_matrix(inverse, r, c);
-			free_matrix(matrix, r, c);
-			free_matrix(matrix2, r2, c2);
-			return aux;
-		}
-
-		if (str[i - 1] == '#')
-		{
-			if (matrix2 && c2 == r)
-			{
-				result = multmatrix(matrix2, matrix, r2, c2, c);
-				aux = matrixtostr(result, r2, c);
-				free_matrix(matrix2, r2, c2);
-				free_matrix(matrix, r, c);
-				return aux;
-			}
-			free_matrix(matrix, r, c);
-			free_matrix(matrix2, r2, c2);
-			*error = 1;
-			return NULL;
-		}
-		if (str[i - 1] == '+')
-		{
-			if (matrix2 && r == r2 && c == c2)
-			{
-				result = addmatrix(matrix, matrix2, r, c);
-				aux = matrixtostr(result, r, c);
-				free_matrix(matrix2, r2, c2);
-				free_matrix(matrix, r, c);
-				return aux;
-			}
-			free_matrix(matrix, r, c);
-			free_matrix(matrix2, r2, c2);
-			*error = 1;
-			return NULL;
-		}
-		if (str[i - 1] == '-')
-		{
-			if (matrix2 && r == r2 && c == c2)
-			{
-				result = submatrix(matrix2, matrix, r, c);
-				aux = matrixtostr(result, r, c);
-				free_matrix(matrix2, r2, c2);
-				free_matrix(matrix, r, c);
-				return aux;
-			}
-			free_matrix(matrix, r, c);
-			free_matrix(matrix2, r2, c2);
-			*error = 1;
-			return NULL;
-		}
-	}
-	else
-	{
-	 	b  = 1;
-		j = i + 1;
-		while (str[j] && b != 0)
-		{
-			b = b + (str[j] == '[') - (str[j] == ']');
-			++j;
-		}
-
-		if (str[j] && str[j + 1] == '[')
-		{
-			r2 = fixRows(str + j + 1);
-			c2 = fixColumns(str + j + 1);
-			matrix2 = create_matrix(str + j + 1, r2, c2);
-		}
-
-		if (str[j] == '*')
-		{
-			if (checkdigitafter(str, j))
-			{
-				digit = readdigitafter(str, j + 1, &i);
-				result = multescalarmatrix(matrix, r, c, strtod(digit, NULL));
-				aux = matrixtostr(result, r, c);
-				free(digit);
-				free_matrix(matrix, r, c);
-				return aux;
-			}
-			if (matrix2 && r == 1 && r2 == 1)
-			{
-				aux = scalarproduct(matrix, matrix2, c);
-				free_matrix(matrix, r, c);
-				free_matrix(matrix2, r2, c2);
-				return aux;
-			}
-			free_matrix(matrix, r, c);
-			free_matrix(matrix2, r2, c2);
-			*error = 1;
-			return NULL;
-		}
-		if (str[j] == '/')
-		{
-			if (checkdigitafter(str, j))
-			{
-				digit = readdigitafter(str, j + 1, &i);
-				result = divescalarmatrix(matrix, r, c, strtod(digit, NULL));
-				aux = matrixtostr(result, r, c);
-				free(digit);
-				free_matrix(matrix, r, c);
-				return aux;
-			}
-			
-			if (r2 != c2)
-			{
-				free_matrix(matrix, r, c);
-				free_matrix(matrix2, r2, c2);
-				*error = 2;
-				return NULL;
-			}
-			char ***inverse;
-			inverse = invertmatrix(matrix2, r2);
-			if (!inverse)
-			{
-				free_matrix(matrix, r, c);
-				free_matrix(matrix2, r2, c2);
-				*error = 3;
-				return NULL;
-			}
-			result = multmatrix(matrix, inverse, r, c, r2);
-			aux = matrixtostr(result, r2, c2);
-			free_matrix(inverse, r2, c2);
-			free_matrix(matrix, r, c);
-			free_matrix(matrix2, r2, c2);
-			return aux;
-		}
-
-		if (str[j] == '#')
-		{
-			if (matrix2 && c == r2)
-			{
-				char ***result;
-				result = multmatrix(matrix, matrix2, r, c, c2);
-				aux = matrixtostr(result, r, c2);
-				free_matrix(matrix, r, c);
-				free_matrix(matrix2, r2, c2);
-				return aux;
-			}
-			free_matrix(matrix, r, c);
-			free_matrix(matrix2, r2, c2);
-			*error = 1;
-			return NULL;
-		}
-
-		if (str[j] == '+')
-		{
-			if (matrix2 && r == r2 && c == c2)
-			{
-				char ***result;
-				result = addmatrix(matrix, matrix2, r, c);
-				aux = matrixtostr(result, r, c);
-				free_matrix(matrix, r, c);
-				free_matrix(matrix2, r2, c2);
-				return aux;
-			}
-			free_matrix(matrix, r, c);
-			free_matrix(matrix2, r2, c2);
-			*error = 1;
-			return NULL;
-		}
-		
-		if (str[j] == '-')
-		{
-			if (matrix2 && r == r2 && c == c2)
-			{
-				char ***result;
-				result = submatrix(matrix, matrix2, r, c);
-				aux = matrixtostr(result, r, c);
-				free_matrix(matrix, r, c);
-				free_matrix(matrix2, r2, c2);
-				return aux;
-			}
-			free_matrix(matrix, r, c);
-			free_matrix(matrix2, r2, c2);
-			*error = 1;
-			return NULL;
-		}
-	}
-	free_matrix(matrix, r, c);
-	free_matrix(matrix2, r2, c2);
-	*error = 1;
-	return NULL;
-}
-
-static void ft_sustituye(char **str, char *aux, int j, int k)
-{
-	char *newstr;
-
-	newstr = (char *)calloc((strlen(*str) - k + j + strlen(aux) + 1), sizeof(char));
-	if (!newstr) exit(EXIT_FAILURE);
-	strncpy(newstr, *str, j);
-	strcat(newstr, aux);
-	if (k < (int)strlen(*str))
-		strcat(newstr, *str + k);
-	free(*str);
-	*str = newstr;
-}
-
 int calc_with_matrices(char **str)
 {
 	int		error = 0;
@@ -870,11 +830,11 @@ int calc_with_matrices(char **str)
 	int		op;
 
 
-	if (v_calc)	printf("PROCESSING WITH MATRIX : %s%s%s\n", CYAN, *str, RESET);
+	if (v_calc)	printf("PROCESSING MATRIX : %s%s%s\n", CYAN, *str, RESET);
 	op = 0;
 	while (op < 4 && strchr(*str, '[') && onlydigits(*str))
 	{
-		i = findoperation(op, *str);
+		i = findmatrixoperation(op, *str);
 		if ( i == -1)
 			++op;
 		else
@@ -898,7 +858,7 @@ int calc_with_matrices(char **str)
 			else
 			{
 				calc(&aux);
-				ft_sustituye(str, aux, j, k);
+				update_result(str, j, k, aux);
 				free(aux);
 				continue;
 			}

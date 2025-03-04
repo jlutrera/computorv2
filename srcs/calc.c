@@ -222,7 +222,7 @@ static char *operatefunction(char *aux, char *number, int *e)
 	return doubletostr(result);
 }
 
-static int	findoperation(int c, char *s)
+static int	findnumberoperation(int c, char *s)
 {
 	char *pos;
 	char *pos2;
@@ -256,20 +256,6 @@ static int	findoperation(int c, char *s)
 	if (!pos)
 		return (-1);
 	return (pos - s);
-}
-
-static void update_result(char **str, int start, int end, char *aux)
-{
-	char 	*temp;
-	
-	temp = (char*)calloc(strlen(*str) + strlen(aux), sizeof(char));
-	if (!temp) exit(EXIT_FAILURE);
-
-	strncat(temp, *str, start);
-	strcat(temp, aux);
-	strcat(temp, *str+end);
-	free(*str);
-	*str = temp;
 }
 
 static bool thereareoperations(char *s)
@@ -313,17 +299,18 @@ static void resolvedoblesigne(char **str)
 	}
 	else if ((*str)[0] == '-' && (*str)[1] == '(')
 	{
-		i = 1;
-		(*str)[1] = ' ';
+		(*str)[0] = ' ';
+		if ((*str)[2] != '+' && (*str)[2] != '-')
+			(*str)[1] = '-';
+		else
+			(*str)[1] = ' ';
+		i = 2;
 		while ((*str)[i] && (*str)[i] != ')')
 		{
 			if ((*str)[i] == '+')
-				(*str)[i] = ' ';
+				(*str)[i] = '-';
 			else if ((*str)[i] == '-')
-			{
-				(*str)[0] = ' ';
 				(*str)[i] = '+';
-			}
 			++i;
 		}
 		if ((*str)[i] == ')')
@@ -399,7 +386,7 @@ static int lookupfunction(char **s)
 	return e;
 }
 
-static bool onlynumbers(char *s)
+static bool anyvariables(char *s)
 {
 	int i;
 
@@ -421,41 +408,6 @@ static bool onlynumbers(char *s)
 		}
 		if (s[i])
 			++i;
-	}
-	return true;
-}
-
-static bool isanumber(char *s)
-{
-	int i;
-
-	if (s[0] == '(' && s[strlen(s)-1] == ')')
-		i = 1;
-	else
-		i = 0;
-	if (s[i] == '-' || s[i] == '+')
-		++i;
-	while (s[i])
-	{
-		if (!isdigit(s[i]) && s[i] != '.')
-			break;
-		++i;
-	}
-	if (s[i] == '\0' || (s[i] == ')' && s[i+1] == '\0'))
-		return true;
-	return false;
-}
-
-static bool thereareonlydigits(char *s)
-{
-	int i;
-
-	i = 0;
-	while (s[i])
-	{
-		if (!isdigit(s[i]) && s[i] != '.' && s[i] != 'i')
-			return false;
-		++i;
 	}
 	return true;
 }
@@ -513,14 +465,14 @@ static int detectbrackets(char **str)
 						return 1;
 					}
 
-					if (!onlynumbers(substr) && !strchr(substr, '(')) 
+					if (!anyvariables(substr) && !strchr(substr, '(')) 
 						calc_with_variables(&substr);
 					
-					else if (onlynumbers(substr))
+					else if (anyvariables(substr))
 					{
 						if (thereareoperations(substr))
 							calc(&substr);
-						if (start == 1 || (thereareonlydigits(substr) && start > 1 && !isalpha((*str)[start - 2])))
+						if (start == 1 || (start > 1 && !isalpha((*str)[start - 2])))
 						{
 							--start;
 							++i;
@@ -563,14 +515,24 @@ static void transform_in_power(char **str)
 			else
 				while (isdigit((*str)[i]) || (*str)[i] == '.')
 					++i;
+			denominador = ft_substr(*str, j, i);
 		}
 		else
 		{
-			while ((*str)[i] != ')')
+			int brackets = 1;
+			while (brackets != 0)
+			{
 				++i;
+				if ((*str)[i] == '(')
+					++brackets;
+				else if ((*str)[i] == ')')
+					--brackets;
+			}
 			++i;
+			denominador = ft_substr(*str, j, i);
 		}
-		denominador = ft_substr(*str, j, i);
+		if (strchr(*str, '('))
+			calc_with_variables(&denominador);
 		p = 0;
 		if ((*str)[i] =='^')
 			p = ++i;
@@ -587,8 +549,15 @@ static void transform_in_power(char **str)
 			}
 			else
 			{
-				while ((*str)[i] != ')')
+				int brackets = 1;
+				while ((*str)[i] && brackets != 0)
+				{
 					++i;
+					if ((*str)[i] == '(')
+						++brackets;
+					else if ((*str)[i] == ')')
+						--brackets;
+				}
 				++i;
 			}
 			exponente = ft_substr(*str, p, i);
@@ -601,7 +570,11 @@ static void transform_in_power(char **str)
 
 		strncpy(aux, *str, j - 1);
 		strcat(aux, "*");
+		if (denominador[0] != '(')
+			strcat(aux, "(");
 		strcat(aux, denominador);
+		if (denominador[0] != '(')
+			strcat(aux, ")");
 		strcat(aux, "^(-1*");
 		strcat(aux, exponente);
 		strcat(aux, ")");
@@ -654,7 +627,7 @@ int	calc(char **str)
 	char	*aux;
 	bool	isnegative;
 
-	isnegative = (*str)[0] == '(' && (*str)[1] == '-' && onlynumbers(*str) && (strchr(*str, '!') || strchr(*str, '^'));
+	isnegative = (*str)[0] == '(' && (*str)[1] == '-' && anyvariables(*str) && (strchr(*str, '!') || strchr(*str, '^'));
 	if (isnegative)
 	    (*str)[1] = '+';
 
@@ -662,7 +635,7 @@ int	calc(char **str)
 	if (!e)
 		resolvedoblesigne(str);
 
-	if (!onlynumbers(*str))
+	if (!anyvariables(*str))
 	{
 		e = check_complex_operators(str);
 		if (e == 1)
@@ -673,14 +646,14 @@ int	calc(char **str)
 		if (v_calc) printf("%sREDUCING    : %s%s%s", GREEN, CYAN, *str, RESET);
 		bool temp = v_calc;
 		v_calc = false;
-		if (onlynumbers(*str))
+		if (anyvariables(*str))
 			calc(str);
 		else
 			calc_with_variables(str);
 		v_calc = temp;
 		if (v_calc) printf(" => %s%s%s\n", CYAN, *str, RESET);
 		
-		if (onlynumbers(*str))
+		if (anyvariables(*str))
 			calc(str);
 		return 0;
 	}
@@ -700,7 +673,7 @@ int	calc(char **str)
 	op = 0;
 	while (op < 4 && !e)
 	{
-		i = findoperation(op, *str);
+		i = findnumberoperation(op, *str);
 		if (i == -1)
 			++op;
 		else

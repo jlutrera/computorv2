@@ -12,20 +12,6 @@
 
 #include "computor.h"
 
-static char get_letter(char *str)
-{
-	int i;
-
-	i = 0;
-	while (str[i] != '\0')
-	{
-		if (isalpha(str[i]))
-			return str[i];
-		i++;
-	}
-	return 0;
-}
-
 static int	adjust_degree(double *reduced, int degree)
 {
 	int	i;

@@ -15,8 +15,6 @@
 bool	v_calc = false;
 bool	plotting = false;
 
-
-
 static void	renewprompt(int sig)
 {
 	(void)sig;
