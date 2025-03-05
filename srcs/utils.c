@@ -16,11 +16,18 @@ void update_result(char **str, int start, int end, char *aux)
 {
 	char 	*temp;
 	
-	temp = (char*)calloc(strlen(*str) + strlen(aux), sizeof(char));
+	temp = (char*)calloc(strlen(*str) + strlen(aux) + 2, sizeof(char));
 	if (!temp) exit(EXIT_FAILURE);
 
 	strncat(temp, *str, start);
-	strcat(temp, aux);
+	if (strlen(temp) > 0 && aux[0] != '(' && aux[0] == '-' && strchr("+-*/^", temp[strlen(temp)-1]) )
+	{
+		strcat(temp, "(");	
+		strcat(temp, aux);
+		strcat(temp, ")");
+	}
+	else
+		strcat(temp, aux);
 	strcat(temp, *str+end);
 	free(*str);
 	*str = temp;

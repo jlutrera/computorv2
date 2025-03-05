@@ -596,9 +596,103 @@ static int check_complex_operators(char **str)
 			return 2;
 
 	if (strchr(*str, '!'))
-		return printf_error("Factorial not allowed with complex numbers", *str, 0);
+	{
+		int i = strchr(*str, '!') - *str;
+		int brackets = ((*str)[i - 1] == ')');
+		i -= brackets;
+		int start = i - 1;
+		while (start >= 0 && (isdigit((*str)[start]) || (*str)[start] == '.'))
+			--start;
+		if (start >= 0 && ((*str)[start] == '-' || (*str)[start] == '+') && !strchr("^!", (*str)[i]) )
+			--start;
+		if (start >= 0 && (isdigit((*str)[start]) || (*str)[start] == ')'))
+			start++;
+		start++;
+		char *num_str = ft_substr(*str, start, i);
+		if (strchr(num_str, 'i'))
+		{
+			free(num_str);
+			return printf_error("Factorial not allowed with complex numbers", *str, 0);
+		}
+		if (strchr(num_str, '-'))
+		{
+			free(num_str);
+			return printf_error("Factorial not allowed with negative numbers", *str, 0);
+		}
+		if (strchr(num_str, '.'))
+		{
+			free(num_str);
+			return printf_error("Factorial not allowed with floating point numbers", *str, 0);
+		}
+		double f = ft_factorial(strtod(num_str, NULL));
+		free(num_str);
+		char *aux = doubletostr(f);
+		update_result(str, start, i+1, aux);
+		free(aux);
+	}
+		
 	if (strchr(*str, '%'))
-		return printf_error("Modulus not allowed with complex numbers", *str, 0);
+	{
+		int i = strchr(*str, '%') - *str;
+		int brackets = ((*str)[i - 1] == ')');
+		i -= brackets;
+		int start = i - 1;
+		while (start >= 0 && (isdigit((*str)[start]) || (*str)[start] == '.'))
+			--start;
+		if (start >= 0 && ((*str)[start] == '-' || (*str)[start] == '+') && !strchr("^!", (*str)[i]) )
+			--start;
+		if (start >= 0 && (isdigit((*str)[start]) || (*str)[start] == ')'))
+			start++;
+		start++;
+		char *num_str_after = ft_substr(*str, start, i);
+		if (strchr(num_str_after, 'i'))
+		{
+			free(num_str_after);
+			return printf_error("Module not allowed with complex numbers", *str, 0);
+		}
+		if (strchr(num_str_after, '-'))
+		{
+			free(num_str_after);
+			return printf_error("Module not allowed with negative numbers", *str, 0);
+		}
+		if (strchr(num_str_after, '.'))
+		{
+			free(num_str_after);
+			return printf_error("Module not allowed with floating point numbers", *str, 0);
+		}
+		brackets = ((*str)[i + 1] == '(');
+		i += brackets;
+		int end = i + 1;
+		if ((*str)[end] == '-' || (*str)[end] == '+')
+			++end;
+		while ((*str)[end] && (isdigit((*str)[end]) || (*str)[end] == '.'))
+			++end;
+		char *num_str_before = ft_substr(*str, i + 1, end);
+		if (strchr(num_str_before, 'i'))
+		{
+			free(num_str_after);
+			free(num_str_before);
+			return printf_error("Module not allowed with complex numbers", *str, 0);
+		}
+		if (strchr(num_str_before, '-'))
+		{
+			free(num_str_after);
+			free(num_str_before);
+			return printf_error("Module not allowed with negative numbers", *str, 0);
+		}
+		if (strchr(num_str_before, '.'))
+		{
+			free(num_str_after);
+			free(num_str_before);
+			return printf_error("Module not allowed with floating point numbers", *str, 0);
+		}
+		double m = ft_mod(strtod(num_str_after, NULL), strtod(num_str_before, NULL));
+		free(num_str_after);
+		free(num_str_before);
+		char *aux = doubletostr(m);
+		update_result(str, start, end, aux);
+		free(aux);
+	}
 
 	if (strchr(*str, '/'))
 	{
