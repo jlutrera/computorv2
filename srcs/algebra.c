@@ -78,6 +78,7 @@ static double *get_factors(char *s, int *g, char c)
 		}
 		else
 			grade = 0;
+		
 		if (grade > *g)
 			*g = grade;
 		factors[grade] += factor;
@@ -92,9 +93,12 @@ static char *multiply(char *m1, char *m2, char c)
 
 	double *factors1;
 	factors1 = get_factors(m1, &grade_max1, c);
+	if (!factors1)
+		return NULL;
 	double *factors2;
 	factors2 = get_factors(m2, &grade_max2, c);
-	
+	if (!factors2)
+		return NULL;
 	double *factors_r = (double *)calloc(grade_max1+grade_max2+1, sizeof(double));
 	if (!factors_r) exit(EXIT_FAILURE);
 
@@ -298,6 +302,8 @@ static char *algebraic_calc(char *s)
 		// Si no hay multiplicaciones ni divisiones, devuelvo la cadena reducida = mutiplicada por 1
 		if (p < 0 && d < 0)
 		{
+			if (strchr(new_s, '!') || strchr(new_s, '%'))
+				return new_s;
 			m = multiply("1", new_s, c);
 			free(new_s);
 			if (m[0] == 0)
@@ -540,7 +546,7 @@ void calc_with_variables(char **str)
 	int		j;
 	char 	*newp;
 	int 	num_exp;
-	
+
 	i = strchr(*str, '(') - *str;
 	if (i >= 0)
 	{

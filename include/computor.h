@@ -123,5 +123,4 @@ bool	check_brackets(char *content);
 bool	isfunctionword(char *token);
 void	free_tokens(t_token **token_list);
 int 	onlydigits(char *s);
-
 #endif

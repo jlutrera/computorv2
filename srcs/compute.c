@@ -242,7 +242,7 @@ int	compute(char **s, t_token **list, char *token)
 	char	*var;
 	char	variable[2] = {0}; //En el caso de que haya función
 
-	if (!token)
+	if (token)
 	{
 		i = strchr(*s, '(') - *s;
 		if (i > 0)
@@ -301,10 +301,12 @@ int	compute(char **s, t_token **list, char *token)
 					free(fname);
 					return printf_error("Function not found", *s, j);
 				}
+
 				free(fname);
 			}
 			free(var);
 		}
 	}
+	
 	return calc(s);
 }

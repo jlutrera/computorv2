@@ -355,7 +355,7 @@ static int lookupfunction(char **s)
 					{
 						free(aux);
 						if (v_calc) printf("\n");
-						return 1;
+						return 2;
 					}
 					++i;
 				}
@@ -410,93 +410,6 @@ static bool anyvariables(char *s)
 			++i;
 	}
 	return true;
-}
-
-static int detectbrackets(char **str)
-{
-	char 	*substr;
-	int		i;
-	int 	j;
-	int		b1;
-	int 	b2;
-	int		start;
-
-	if (isanumber(*str))
-		return 0;
-
-	i = 0;
-	while ((*str)[i])
-	{
-		while ((*str)[i] && (*str)[i] != '(')
-			++i;
-		if ((*str)[i] == '(')
-		{
-			b1 = 1;
-			start = ++i;
-			while ((*str)[i] && b1 !=0)
-			{			
-				b1 = b1 + ((*str)[i] == '(') - ((*str)[i] == ')');
-				if (b1 == 0)
-				{
-					substr = ft_substr(*str, start, i);
-					while (substr[0] == '(' && substr[strlen(substr)-1] == ')')
-					{
-						j  = 1;
-						b2 = 1;
-						while (substr[j] && b2 != 0)
-						{
-							b2 = b2 + (substr[j] == '(') - (substr[j] == ')');
-							++j;
-						}
-						if (substr[j] == '\0' && b2 == 0)
-						{
-							substr[0] = ' ';
-							substr[strlen(substr)-1] = ' ';
-							substr = ft_trim(substr);
-						}
-						else
-							break;
-					}
-
-					if (v_calc) printf("%sBRACKET    <= %s%s%s\n", GREEN, CYAN, substr, RESET);
-					if (detectbrackets(&substr) || lookupfunction(&substr))
-					{
-						free(substr);
-						return 1;
-					}
-
-					if (!anyvariables(substr) && !strchr(substr, '(')) 
-						calc_with_variables(&substr);
-					
-					else if (anyvariables(substr))
-					{
-						if (thereareoperations(substr))
-							calc(&substr);
-						if (start == 1 || (start > 1 && !isalpha((*str)[start - 2])))
-						{
-							--start;
-							++i;
-						}
-					}
-					update_result(str, start, i, substr);
-					resolvedoblesigne(str);
-					i = start + strlen(substr);
-
-					free(substr);
-					if (strchr(*str, '[') && strchr(*str, ')'))
-					{
-						i = strchr(*str, ')') - *str;
-						(*str)[start - 1] = ' ';
-						(*str)[i] = ' ';
-						remove_spaces(*str);
-					}
-					if (v_calc) printf("%sBRACKET    => %s%s%s\n", GREEN, CYAN, *str, RESET);
-				}
-				++i;
-			}
-		}
-	}
-	return lookupfunction(str);
 }
 
 static void transform_in_power(char **str)
@@ -588,6 +501,12 @@ static void transform_in_power(char **str)
 
 static int check_complex_operators(char **str)
 {
+	int brackets;
+	int i;
+	int j;
+	int start;
+	int end;
+
 	if (!strchr(*str, 'i'))
 		return 0; 
 
@@ -597,18 +516,29 @@ static int check_complex_operators(char **str)
 
 	if (strchr(*str, '!'))
 	{
-		int i = strchr(*str, '!') - *str;
-		int brackets = ((*str)[i - 1] == ')');
-		i -= brackets;
-		int start = i - 1;
-		while (start >= 0 && (isdigit((*str)[start]) || (*str)[start] == '.'))
-			--start;
-		if (start >= 0 && ((*str)[start] == '-' || (*str)[start] == '+') && !strchr("^!", (*str)[i]) )
-			--start;
-		if (start >= 0 && (isdigit((*str)[start]) || (*str)[start] == ')'))
-			start++;
-		start++;
-		char *num_str = ft_substr(*str, start, i);
+		brackets = 0;
+		i = strchr(*str, '!') - *str;
+		if ((*str)[i - 1] == ')')
+		{
+			brackets = 1;
+			--i;
+		}
+		j = i - 1;
+		while (j > 0 && (isdigit((*str)[j]) || (*str)[j] == '.' || (*str)[j] == 'i' || (brackets && strchr("()+-*/%!", (*str)[j]))))
+		{
+			--j;
+			if (brackets == 0)
+				continue;
+			if ((*str)[j] == '(')
+				--brackets;
+			else if ((*str)[j] == ')')
+				++brackets;	
+	
+		}
+		if (strchr("()+-*/%!", (*str)[j]))
+			++j;
+		char *num_str = ft_substr((*str), j, i+1);
+
 		if (strchr(num_str, 'i'))
 		{
 			free(num_str);
@@ -627,66 +557,91 @@ static int check_complex_operators(char **str)
 		double f = ft_factorial(strtod(num_str, NULL));
 		free(num_str);
 		char *aux = doubletostr(f);
-		update_result(str, start, i+1, aux);
+		update_result(str, j, i+1, aux);
 		free(aux);
 	}
 		
 	if (strchr(*str, '%'))
 	{
-		int i = strchr(*str, '%') - *str;
-		int brackets = ((*str)[i - 1] == ')');
-		i -= brackets;
-		int start = i - 1;
-		while (start >= 0 && (isdigit((*str)[start]) || (*str)[start] == '.'))
-			--start;
-		if (start >= 0 && ((*str)[start] == '-' || (*str)[start] == '+') && !strchr("^!", (*str)[i]) )
-			--start;
-		if (start >= 0 && (isdigit((*str)[start]) || (*str)[start] == ')'))
-			start++;
-		start++;
-		char *num_str_after = ft_substr(*str, start, i);
-		if (strchr(num_str_after, 'i'))
+		brackets = 0;
+		i = strchr(*str, '%') - *str;
+		if ((*str)[i - 1] == ')')
 		{
-			free(num_str_after);
-			return printf_error("Module not allowed with complex numbers", *str, 0);
+			brackets = 1;
+			--i;
 		}
-		if (strchr(num_str_after, '-'))
+		j = i - 1;
+		while (j > 0 && (isdigit((*str)[j]) || (*str)[j] == '.' || (*str)[j] == 'i' || (brackets && strchr("()+-*/%!", (*str)[j]))))
 		{
-			free(num_str_after);
-			return printf_error("Module not allowed with negative numbers", *str, 0);
+			--j;
+			if (brackets == 0)
+				continue;
+			if ((*str)[j] == '(')
+				--brackets;
+			else if ((*str)[j] == ')')
+				++brackets;	
+	
 		}
-		if (strchr(num_str_after, '.'))
-		{
-			free(num_str_after);
-			return printf_error("Module not allowed with floating point numbers", *str, 0);
-		}
-		brackets = ((*str)[i + 1] == '(');
-		i += brackets;
-		int end = i + 1;
-		if ((*str)[end] == '-' || (*str)[end] == '+')
-			++end;
-		while ((*str)[end] && (isdigit((*str)[end]) || (*str)[end] == '.'))
-			++end;
-		char *num_str_before = ft_substr(*str, i + 1, end);
+		if (strchr("()+-*/%!", (*str)[j]))
+			++j;
+		char *num_str_before = ft_substr((*str), j, i);
+		start = j;
 		if (strchr(num_str_before, 'i'))
 		{
-			free(num_str_after);
 			free(num_str_before);
 			return printf_error("Module not allowed with complex numbers", *str, 0);
 		}
 		if (strchr(num_str_before, '-'))
 		{
-			free(num_str_after);
 			free(num_str_before);
 			return printf_error("Module not allowed with negative numbers", *str, 0);
 		}
 		if (strchr(num_str_before, '.'))
 		{
+			free(num_str_before);
+			return printf_error("Module not allowed with floating point numbers", *str, 0);
+		}
+
+		brackets = 0;
+		i = strchr(*str, '%') - *str;
+		if ((*str)[i + 1] == '(')
+		{
+			brackets = 1;
+			++i;
+		}
+		j = i + 1;
+		while ((*str)[j] != '\0' && (isdigit((*str)[j]) || (*str)[j] == '.' || (*str)[j] == 'i' || (brackets && strchr("()+-*/%!", (*str)[j]))))
+		{
+			j++;
+			if (brackets == 0)
+				continue;
+			if ((*str)[j] == '(')
+				++brackets;
+			else if ((*str)[j] == ')')
+				--brackets;
+	
+		}
+		char *num_str_after = ft_substr(*str, i + 1, j);
+		end = j;
+		if (strchr(num_str_after, 'i'))
+		{
+			free(num_str_after);
+			free(num_str_before);
+			return printf_error("Module not allowed with complex numbers", *str, 0);
+		}
+		if (strchr(num_str_after, '-'))
+		{
+			free(num_str_after);
+			free(num_str_before);
+			return printf_error("Module not allowed with negative numbers", *str, 0);
+		}
+		if (strchr(num_str_after, '.'))
+		{
 			free(num_str_after);
 			free(num_str_before);
 			return printf_error("Module not allowed with floating point numbers", *str, 0);
 		}
-		double m = ft_mod(strtod(num_str_after, NULL), strtod(num_str_before, NULL));
+		double m = ft_mod(strtod(num_str_before, NULL), strtod(num_str_after, NULL));
 		free(num_str_after);
 		free(num_str_before);
 		char *aux = doubletostr(m);
@@ -709,6 +664,100 @@ static int check_complex_operators(char **str)
 	return 0;
 }
 
+static int detectbrackets(char **str)
+{
+	char 	*substr;
+	int		i;
+	int 	j;
+	int		b1;
+	int 	b2;
+	int		start;
+	int		e;
+
+	if (isanumber(*str))
+		return 0;
+
+	i = 0;
+	while ((*str)[i])
+	{
+		while ((*str)[i] && (*str)[i] != '(')
+			++i;
+		if ((*str)[i] == '(')
+		{
+			b1 = 1;
+			start = ++i;
+			while ((*str)[i] && b1 !=0)
+			{			
+				b1 = b1 + ((*str)[i] == '(') - ((*str)[i] == ')');
+				if (b1 == 0)
+				{
+					substr = ft_substr(*str, start, i);
+					while (substr[0] == '(' && substr[strlen(substr)-1] == ')')
+					{
+						j  = 1;
+						b2 = 1;
+						while (substr[j] && b2 != 0)
+						{
+							b2 = b2 + (substr[j] == '(') - (substr[j] == ')');
+							++j;
+						}
+						if (substr[j] == '\0' && b2 == 0)
+						{
+							substr[0] = ' ';
+							substr[strlen(substr)-1] = ' ';
+							substr = ft_trim(substr);
+						}
+						else
+							break;
+					}
+
+					if (v_calc) printf("%sBRACKET    <= %s%s%s\n", GREEN, CYAN, substr, RESET);
+					if (detectbrackets(&substr) || lookupfunction(&substr))
+					{
+						free(substr);
+						return 1;
+					}
+					e = check_complex_operators(&substr);
+					if (e != 0)
+					{
+						free(substr);
+						return e;
+					}
+	
+					if (!anyvariables(substr) && !strchr(substr, '(')) 
+						calc_with_variables(&substr);
+					
+					else if (anyvariables(substr))
+					{
+						if (thereareoperations(substr))
+							calc(&substr);
+						if (start == 1 || (start > 1 && !isalpha((*str)[start - 2])))
+						{
+							--start;
+							++i;
+						}
+					}
+					update_result(str, start, i, substr);
+					resolvedoblesigne(str);
+					i = start + strlen(substr);
+
+					free(substr);
+					if (strchr(*str, '[') && strchr(*str, ')'))
+					{
+						i = strchr(*str, ')') - *str;
+						(*str)[start - 1] = ' ';
+						(*str)[i] = ' ';
+						remove_spaces(*str);
+					}
+					if (v_calc) printf("%sBRACKET    => %s%s%s\n", GREEN, CYAN, *str, RESET);
+				}
+				++i;
+			}
+		}
+	}
+	return lookupfunction(str);
+}
+
 int	calc(char **str)
 {
 	int		op;
@@ -726,17 +775,16 @@ int	calc(char **str)
 	    (*str)[1] = '+';
 
 	e = detectbrackets(str);
-	if (!e)
-		resolvedoblesigne(str);
-
+	if (e != 0)
+		return (e % 2);
+	
+	resolvedoblesigne(str);
+	
 	if (!anyvariables(*str))
 	{
 		e = check_complex_operators(str);
 		if (e == 1)
 			return 1;
-		if (e == 2)
-			return 0;
-		
 		if (v_calc) printf("%sREDUCING    : %s%s%s", GREEN, CYAN, *str, RESET);
 		bool temp = v_calc;
 		v_calc = false;
