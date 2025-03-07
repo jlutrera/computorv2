@@ -727,20 +727,12 @@ static int detectbrackets(char **str)
 					if (!anyvariables(substr))
 						calc_with_variables(&substr);
 					
-					else
-					{
-						if (thereareoperations(substr))
-							calc(&substr);
-						if (start == 1 || (start > 1 && !isalpha((*str)[start - 2])))
-						{
-							--start;
-							++i;
-						}
-					}
+					else if (thereareoperations(substr))	
+						calc(&substr);
+
 					update_result(str, start, i, substr);
 					resolvedoblesigne(str);
 					i = start + strlen(substr);
-
 					free(substr);
 					if (strchr(*str, '[') && strchr(*str, ')'))
 					{

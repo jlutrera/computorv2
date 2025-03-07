@@ -19,7 +19,7 @@ void update_result(char **str, int start, int end, char *aux)
 	temp = (char*)calloc(strlen(*str) + strlen(aux) + 2, sizeof(char));
 	if (!temp) exit(EXIT_FAILURE);
 
-	strncat(temp, *str, start);
+	strncpy(temp, *str, start);
 	if (strlen(temp) > 0 && aux[0] != '(' && aux[0] == '-' && strchr("+-*/^", temp[strlen(temp)-1]) )
 	{
 		strcat(temp, "(");	

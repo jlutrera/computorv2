@@ -244,9 +244,13 @@ int	compute(char **s, t_token **list, char *token)
 
 	if (!token)
 	{
-		i = strchr(*s, '(') - *s;
+		i = 0;
+		while (strchr(*s+i, '('))
+		{
+			i = strchr(*s+i, '(') - *s + 1;
+		}
 		if (i > 0)
-			variable[0] = (*s)[i + 1];
+			variable[0] = (*s)[i];;
 	}
 
 	i = 0;
