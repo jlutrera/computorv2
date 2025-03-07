@@ -724,10 +724,10 @@ static int detectbrackets(char **str)
 						return e;
 					}
 	
-					if (!anyvariables(substr) && !strchr(substr, '(')) 
+					if (!anyvariables(substr))
 						calc_with_variables(&substr);
 					
-					else if (anyvariables(substr))
+					else
 					{
 						if (thereareoperations(substr))
 							calc(&substr);
@@ -783,8 +783,9 @@ int	calc(char **str)
 	if (!anyvariables(*str))
 	{
 		e = check_complex_operators(str);
-		if (e == 1)
-			return 1;
+		if (e != 0)
+			return (e % 2);
+
 		if (v_calc) printf("%sREDUCING    : %s%s%s", GREEN, CYAN, *str, RESET);
 		bool temp = v_calc;
 		v_calc = false;

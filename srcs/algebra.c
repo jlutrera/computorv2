@@ -548,6 +548,7 @@ void calc_with_variables(char **str)
 	int 	num_exp;
 
 	i = strchr(*str, '(') - *str;
+
 	if (i >= 0)
 	{
 		j = whereistheclosingbracket(*str, i + 1);
