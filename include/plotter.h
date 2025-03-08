@@ -16,7 +16,7 @@
 # include "computor.h"
 # include <X11/Xlib.h>
 # include <X11/Xutil.h>
-# include <mlx.h>
+# include "../mlx/include/mlx.h"
 
 typedef struct s_data
 {
